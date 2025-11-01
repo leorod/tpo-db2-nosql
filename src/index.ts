@@ -1,5 +1,5 @@
 import express from 'express';
-import { connectMongoDB, connectRedis, connectNeo4j } from './config/database.js';
+import { connectMongoDB, connectNeo4j } from './config/database.js';
 import dotenv from 'dotenv';
 
 dotenv.config();
@@ -10,8 +10,7 @@ const port = process.env.PORT || 3000;
 app.use(express.json());
 
 // Connect to databases
-connectMongoDB();
-const redisClient = await connectRedis();
+await connectMongoDB();
 const neo4jDriver = connectNeo4j();
 
 // Basic route
