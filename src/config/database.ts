@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
 import neo4j from 'neo4j-driver';
+import { createClient } from 'redis';
 import dotenv from 'dotenv';
 
 dotenv.config();
@@ -30,4 +31,20 @@ export const connectNeo4j = () => {
   );
   console.log('Neo4j connected successfully');
   return driver;
+};
+
+
+// Redis Connection
+export const connectRedis = async () => {
+  const redisURI = process.env.REDIS_URI || 'redis://localhost:6379';
+  
+  const client = createClient({
+    url: redisURI
+  });
+
+  client.on('error', (err) => console.error('Redis Client Error:', err));
+  client.on('connect', () => console.log('Redis connected successfully'));
+
+  await client.connect();
+  return client;
 };
