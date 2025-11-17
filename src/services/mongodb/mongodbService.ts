@@ -258,14 +258,20 @@ export class MongoDBService {
 
     // Calcular score para cada candidato
     const candidatesWithScores = await Promise.all(
-      candidates.map(async (candidate) => {
-        const score = await this.calculateMatchScore(candidate._id.toString(), jobPostingId);
+      candidates.map(async (candidate: any) => {
+        // Ensure candidate._id is defined and is a string or can be converted
+        const candidateId = typeof candidate._id === 'object' && candidate._id?.toString
+          ? candidate._id.toString()
+          : String(candidate._id);
+
+        const score = await this.calculateMatchScore(candidateId, jobPostingId);
         return {
           user: candidate,
           matchScore: score
         };
       })
     );
+    
 
     // Ordenar por score y retornar top N
     return candidatesWithScores
@@ -289,7 +295,7 @@ export class MongoDBService {
     // Calcular score para cada job
     const jobsWithScores = await Promise.all(
       jobs.map(async (job) => {
-        const score = await this.calculateMatchScore(userId, job._id.toString());
+        const score = await this.calculateMatchScore(userId, (job as any)._id.toString());
         
         // Verificar si ya aplicó
         const existingApplication = await Application.findOne({

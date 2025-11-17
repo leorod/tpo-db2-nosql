@@ -19,8 +19,9 @@ export class TalentumController {
       const userData = req.body;
       
       const user = await this.mongoService.createUser(userData);
+      const userId = (user as any)._id.toString();
       
-      await this.neo4jService.createUserNode(user._id.toString(), {
+      await this.neo4jService.createUserNode(userId, {
         name: user.name,
         email: user.email,
         location: user.location
@@ -29,7 +30,7 @@ export class TalentumController {
       if (userData.skills && userData.skills.length > 0) {
         for (const skill of userData.skills) {
           await this.neo4jService.createHasSkillRelationship(
-            user._id.toString(),
+            userId,
             skill.name,
             skill.level,
             skill.yearsOfExperience
@@ -37,7 +38,7 @@ export class TalentumController {
         }
       }
       
-      await this.redisService.cacheUser(user._id.toString(), user.toObject());
+      await this.redisService.cacheUser(userId, (user as any).toObject());
       
       res.status(201).json({ success: true, data: user });
     } catch (error: any) {
@@ -111,7 +112,7 @@ export class TalentumController {
       const company = await this.mongoService.createCompany(companyData);
       
       // Crear nodo en Neo4j
-      await this.neo4jService.createCompanyNode(company._id.toString(), {
+      await this.neo4jService.createCompanyNode((company as any)._id.toString(), {
         name: company.name,
         industry: company.industry
       });
@@ -139,15 +140,15 @@ export class TalentumController {
       const job = await this.mongoService.createJobPosting(jobData);
       
       // Crear nodo en Neo4j
-      await this.neo4jService.createJobPostingNode(job._id.toString(), {
+      await this.neo4jService.createJobPostingNode((job as any)._id.toString(), {
         title: job.title,
         location: job.location
       });
       
       // Crear relación POSTED con la empresa
       await this.neo4jService.createPostedByRelationship(
-        job.companyId.toString(),
-        job._id.toString()
+        (job as any).companyId.toString(),
+        (job as any)._id.toString()
       );
       
       // Invalidar caché de jobs activos
@@ -312,13 +313,14 @@ export class TalentumController {
             limit
           );
           
-          // Combinar resultados
-          candidates = {
-            mongoResults,
-            neo4jResults
-          };
-          
-          await this.redisService.cacheMatchingCandidates(jobId, candidates);
+        // Combinar resultados
+        const combinedResults: any = {
+          mongoResults,
+          neo4jResults
+        };
+        candidates = combinedResults;
+        
+        await this.redisService.cacheMatchingCandidates(jobId, combinedResults);
         }
       }
       
@@ -343,12 +345,13 @@ export class TalentumController {
         // Buscar en Neo4j
         const neo4jJobs = await this.neo4jService.recommendJobsForUser(userId, limit);
         
-        recommendations = {
+        const combinedRecs: any = {
           mongoRecommendations: mongoJobs,
           neo4jRecommendations: neo4jJobs
         };
+        recommendations = combinedRecs;
         
-        await this.redisService.cacheRecommendedJobs(userId, recommendations);
+        await this.redisService.cacheRecommendedJobs(userId, combinedRecs);
       }
       
       res.json({ success: true, data: recommendations });
@@ -364,7 +367,7 @@ export class TalentumController {
       const course = await this.mongoService.createCourse(courseData);
       
       // Crear nodo en Neo4j
-      await this.neo4jService.createCourseNode(course._id.toString(), {
+      await this.neo4jService.createCourseNode((course as any)._id.toString(), {
         title: course.title,
         category: course.category
       });
