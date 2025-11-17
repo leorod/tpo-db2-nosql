@@ -1,0 +1,243 @@
+// TODO hacer un script de verdad que inserte todo esto en mongo
+
+// perfiles
+
+{
+  _id: ObjectId,
+  user_id: "neo4j_user_id",
+  personal_info: {
+    nombre: "Juan Pérez",
+    email: "juan@email.com",
+    telefono: "+54...",
+    ubicacion: {ciudad: "CABA", pais: "Argentina"},
+    linkedin: "...", github: "..."
+  },
+  experiencia: [
+    {
+      empresa: "TechCorp",
+      cargo: "Senior Dev",
+      desde: ISODate("2020-01"),
+      hasta: ISODate("2023-05"),
+      descripcion: "...",
+      tecnologias: ["React", "Node"]
+    }
+  ],
+  educacion: [...],
+  
+  historial_cambios: [
+    {
+      fecha: ISODate("2024-03-15"),
+      campo_modificado: "experiencia",
+      valor_anterior: {...},
+      valor_nuevo: {...}
+    }
+  ],
+  
+  preferencias: {
+    tipo_trabajo: ["remoto", "hibrido"],
+    rango_salarial: {min: 3000, max: 5000, moneda: "USD"},
+    disponibilidad: "inmediata"
+  }
+}
+
+
+//posiciones
+
+{
+  _id: ObjectId,
+  position_id: "neo4j_position_id",
+  company_id: "neo4j_company_id",
+  
+  titulo: "Senior Backend Engineer",
+  descripcion: "...",
+  
+  requisitos: {
+    skills_requeridos: [
+      {skill: "Python", nivel: "senior", excluyente: true},
+      {skill: "AWS", nivel: "mid", excluyente: false}
+    ],
+    experiencia_minima: 5,
+    idiomas: ["español", "inglés"]
+  },
+  
+  condiciones: {
+    modalidad: "remoto",
+    tipo_contrato: "relacion_dependencia",
+    rango_salarial: {min: 4000, max: 6000, moneda: "USD"},
+    beneficios: ["prepaga", "home office"]
+  },
+  
+  estado: "activa",
+  fecha_publicacion: ISODate(),
+  fecha_cierre: ISODate()
+}
+
+
+// postulaciones
+
+{
+  _id: ObjectId,
+  user_id: "neo4j_user_id",
+  position_id: "neo4j_position_id",
+  
+  fecha_aplicacion: ISODate(),
+  estado_actual: "entrevista_tecnica",
+  
+  historial_estados: [
+    {
+      estado: "aplicado",
+      fecha: ISODate("2024-10-01"),
+      automatico: true
+    },
+    {
+      estado: "preseleccionado",
+      fecha: ISODate("2024-10-05"),
+      responsable: "recruiter_id",
+      notas: "Buen perfil técnico"
+    },
+    {
+      estado: "entrevista_rrhh",
+      fecha: ISODate("2024-10-10"),
+      responsable: "recruiter_id"
+    },
+    {
+      estado: "entrevista_tecnica",
+      fecha: ISODate("2024-10-15"),
+      responsable: "tech_lead_id"
+    }
+  ],
+  
+  entrevistas: [
+    {
+      tipo: "rrhh",
+      fecha: ISODate("2024-10-10T15:00:00"),
+      entrevistador_id: "recruiter_id",
+      duracion_minutos: 45,
+      
+      feedback_privado: "Buena comunicación, expectativas alineadas",
+      puntuacion: 8,
+      apto: true
+    },
+    {
+      tipo: "tecnica",
+      fecha: ISODate("2024-10-15T10:00:00"),
+      entrevistador_id: "tech_lead_id",
+      
+      evaluacion_tecnica: {
+        problema_resuelto: "tree_traversal",
+        tiempo_minutos: 35,
+        calidad_codigo: 9,
+        comunicacion: 8,
+        resultado: "excelente"
+      },
+      
+      feedback_privado: "Sólido en algoritmos, buena práctica de código",
+      puntuacion: 9,
+      apto: true
+    }
+  ],
+  
+  motivo_rechazo: null,
+  feedback_candidato: null,
+  
+  referido_por: null,
+  fuente: "aplicacion_directa"
+}
+
+
+
+// cursos
+
+{
+  _id: ObjectId,
+  course_id: "neo4j_course_id",
+  
+  titulo: "Microservicios con Node.js",
+  descripcion: "...",
+  instructor: {
+    user_id: "instructor_id",
+    nombre: "María García"
+  },
+  
+  categoria: "backend",
+  nivel: "intermedio",
+  duracion_horas: 40,
+  
+  modulos: [
+    {
+      orden: 1,
+      titulo: "Introducción",
+      lecciones: [
+        {
+          orden: 1,
+          titulo: "¿Qué son los microservicios?",
+          tipo: "video",
+          duracion_minutos: 15,
+          contenido_url: "s3://...",
+          recursos: ["pdf_slides_url"]
+        },
+        {
+          orden: 2,
+          titulo: "Quiz inicial",
+          tipo: "evaluacion",
+          preguntas: [...]
+        }
+      ]
+    }
+  ],
+  
+  skills_aprendidos: ["microservices", "docker", "kubernetes"],
+  prerequisitos: ["nodejs_basico"],
+  
+  certificacion: {
+    otorga_certificado: true,
+    calificacion_minima: 70,
+    template_certificado_url: "..."
+  }
+}
+
+
+// inscripciones
+
+{
+  _id: ObjectId,
+  user_id: "neo4j_user_id",
+  course_id: "course_id",
+  
+  fecha_inscripcion: ISODate(),
+  fecha_inicio: ISODate(),
+  fecha_completado: null,
+  
+  progreso: {
+    lecciones_completadas: [
+      {
+        modulo: 1,
+        leccion: 1,
+        fecha_completado: ISODate(),
+        tiempo_visualizacion_segundos: 890
+      }
+    ],
+    ultimo_acceso: ISODate()
+  },
+  
+  certificado: {
+    obtenido: false,
+    calificacion_final: null,
+    fecha_emision: null
+  }
+}
+
+
+// reviews de cursos
+
+{
+  _id: ObjectId,
+  user_id: "user_id",
+  course_id: "course_id",
+  inscripcion_id: "inscripcion_id",
+  
+  rating: 5,
+  comentario: "Excelente curso, muy práctico",
+  fecha: ISODate()
+}
+
