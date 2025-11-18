@@ -25,6 +25,19 @@ services:
     volumes:
       - mongo_data:/data/db
     restart: unless-stopped
+  
+  redis:
+    image: redis:7.2-alpine
+    container_name: redis-tpo
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+      - ./redis.conf:/usr/local/etc/redis/redis.conf
+    command: redis-server /usr/local/etc/redis/redis.conf
+    networks:
+      - redis-network
 
   redis_db:
     image: redis:7-alpine
@@ -41,3 +54,7 @@ volumes:
   neo4j_logs:
   mongo_data:
   redis_data:
+
+networks:
+  redis-network:
+    driver: bridge
