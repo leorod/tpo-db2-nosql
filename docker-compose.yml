@@ -39,6 +39,16 @@ services:
     networks:
       - redis-network
 
+  redis_db:
+    image: redis:7-alpine
+    container_name: redis_db
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    restart: unless-stopped
+
 volumes:
   neo4j_data:
   neo4j_logs:
