@@ -122,7 +122,6 @@ export class RedisService {
   }
 
   async createSession(sessionId: string, userData: any, ttl: number = 86400): Promise<void> {
-    // TTL por defecto: 24 horas
     await this.set(`session:${sessionId}`, userData, ttl);
   }
 
@@ -183,7 +182,6 @@ export class RedisService {
     await this.client.set(`counter:${key}`, value.toString());
   }
 
-  // Estadísticas de aplicaciones en tiempo real
   async trackApplicationSubmitted(jobId: string): Promise<void> {
     await this.incrementCounter(`job:${jobId}:applications`);
     await this.incrementCounter('applications:total:today');

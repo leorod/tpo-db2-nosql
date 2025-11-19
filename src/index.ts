@@ -52,29 +52,10 @@ const initializeApp = async () => {
 
     console.log('🛣️  Routes configured!\n');
 
-    // Start server
     app.listen(port, () => {
-      console.log('═══════════════════════════════════════════════════');
-      console.log(`🎯 Talentum+ API Server`);
-      console.log(`📍 Server running on: http://localhost:${port}`);
-      console.log(`📡 API Endpoints: http://localhost:${port}/api`);
-      console.log('═══════════════════════════════════════════════════\n');
-      console.log('📚 Available endpoints:');
-      console.log('   - GET  /api/health');
-      console.log('   - POST /api/users');
-      console.log('   - GET  /api/users');
-      console.log('   - POST /api/companies');
-      console.log('   - POST /api/jobs');
-      console.log('   - GET  /api/jobs');
-      console.log('   - POST /api/applications');
-      console.log('   - GET  /api/matching/job/:jobId/candidates');
-      console.log('   - GET  /api/recommendations/user/:userId/jobs');
-      console.log('   - POST /api/courses');
-      console.log('   - GET  /api/courses');
-      console.log('   - And many more...\n');
+      console.log(`Server running on: http://localhost:${port}`);
     });
 
-    // Graceful shutdown
     process.on('SIGINT', async () => {
       console.log('\n⚠️  Shutting down gracefully...');
       await neo4jService.close();

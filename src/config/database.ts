@@ -5,10 +5,21 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-// MongoDB Connection
 export const connectMongoDB = async () => {
   try {
-    const mongoURI = process.env.MONGO_URI || 'mongodb://localhost:27017/mi_database';
+    let mongoURI = process.env.MONGO_URI;
+    
+    if (!mongoURI) {
+      const mongoDb = process.env.MONGO_DB || 'talentum_db';
+      
+      if (process.env.MONGO_ROOT_USER && process.env.MONGO_ROOT_PASSWORD) {
+        const mongoUser = process.env.MONGO_ROOT_USER;
+        const mongoPassword = process.env.MONGO_ROOT_PASSWORD;
+        mongoURI = `mongodb://${mongoUser}:${mongoPassword}@localhost:27017/${mongoDb}?authSource=admin`;
+      } else {
+        mongoURI = `mongodb://localhost:27017/${mongoDb}`;
+      }
+    }
     
     await mongoose.connect(mongoURI);
     console.log('MongoDB connected successfully');
