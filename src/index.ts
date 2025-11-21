@@ -6,6 +6,7 @@ import { RedisService } from './services/redis/redisService.js';
 import { TalentumController } from './controllers/dbControllers.js';
 import { createRoutes } from './routes/routes.js';
 import dotenv from 'dotenv';
+import * as metrics from './metrics.js';
 
 dotenv.config();
 
@@ -20,6 +21,26 @@ app.use((req, res, next) => {
   res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   next();
+});
+
+// Métricas
+app.use((req, res, next) => {
+  const start = Date.now();
+
+  res.on('finish', () => {
+    const duration = Date.now() - start;
+    const route = req.route ? `${req.baseUrl}${req.route.path}` : req.path;
+
+    metrics.httpRequestCounter.labels(req.method, route, res.statusCode.toString()).inc();
+    metrics.httpRequestDuration.labels(req.method, route, res.statusCode.toString()).observe(duration);
+  });
+
+  next();
+});
+
+app.get('/metrics', async (req, res) => {
+  res.set('Content-Type', metrics.register.contentType);
+  res.end(await metrics.register.metrics());
 });
 
 const initializeApp = async () => {

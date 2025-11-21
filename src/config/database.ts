@@ -1,7 +1,8 @@
 import mongoose from 'mongoose';
-import neo4j from 'neo4j-driver';
+import neo4j, { Driver, SessionConfig, Session } from 'neo4j-driver';
 import { createClient } from 'redis';
 import dotenv from 'dotenv';
+import { dbConnectionsGauge } from '../metrics.js';
 
 dotenv.config();
 
@@ -20,6 +21,13 @@ export const connectMongoDB = async () => {
         mongoURI = `mongodb://localhost:27017/${mongoDb}`;
       }
     }
+
+    setInterval(() => {
+      const connections = mongoose.connection.readyState === 1 
+        ? mongoose.connections.length
+        : 0;
+      dbConnectionsGauge.labels('mongodb').set(connections);
+    }, 5000);
     
     await mongoose.connect(mongoURI);
     console.log('MongoDB connected successfully');
@@ -29,6 +37,38 @@ export const connectMongoDB = async () => {
   }
 };
 
+export class Neo4jTrackedDriver {
+  private activeSessions: number;
+  private _delegate: Driver;
+
+  constructor(delegate: Driver) {
+    this.activeSessions = 0;
+    this._delegate = delegate;
+  }
+
+  public session(config?: SessionConfig): Session {
+    const session = this._delegate.session(config);
+    this.activeSessions++;
+    dbConnectionsGauge.labels('neo4j').set(this.activeSessions);
+
+    const originalClose = session.close.bind(session);
+    session.close = async () => {
+      this.activeSessions--;
+      dbConnectionsGauge.labels('neo4j').set(this.activeSessions);
+      return originalClose();
+    };
+
+    return session;
+  }
+
+  public async close(): Promise<void> {
+    return await this._delegate.close();
+  }
+  
+  get delegate(): Driver {
+    return this._delegate;
+  }
+}
 
 // Neo4j Connection
 export const connectNeo4j = () => {
@@ -40,8 +80,9 @@ export const connectNeo4j = () => {
     neo4jURI,
     neo4j.auth.basic(neo4jUser, neo4jPassword)
   );
+
   console.log('Neo4j connected successfully');
-  return driver;
+  return new Neo4jTrackedDriver(driver);
 };
 
 

@@ -1,9 +1,10 @@
 import neo4j, { Driver, Session } from 'neo4j-driver';
+import { Neo4jTrackedDriver } from '../../config/database.js';
 
 export class Neo4jService {
-  private driver: Driver;
+  private driver: Neo4jTrackedDriver;
 
-  constructor(driver: Driver) {
+  constructor(driver: Neo4jTrackedDriver) {
     this.driver = driver;
   }
 
