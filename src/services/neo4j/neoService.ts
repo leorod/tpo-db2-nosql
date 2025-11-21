@@ -1,4 +1,4 @@
-import { Driver, Session } from 'neo4j-driver';
+import neo4j, { Driver, Session } from 'neo4j-driver';
 
 export class Neo4jService {
   private driver: Driver;
@@ -96,7 +96,6 @@ export class Neo4jService {
     }
   }
   
-  // User WORKS_AT Company
   async createWorksAtRelationship(userId: string, companyId: string, role: string, startDate: Date, endDate?: Date) {
     const session = this.getSession();
     try {
@@ -104,7 +103,7 @@ export class Neo4jService {
         `MATCH (u:User {id: $userId}), (c:Company {id: $companyId})
          CREATE (u)-[r:WORKS_AT {role: $role, startDate: $startDate, endDate: $endDate}]->(c)
          RETURN r`,
-        { userId, companyId, role, startDate: startDate.toISOString(), endDate: endDate?.toISOString() }
+        { userId, companyId, role, startDate: startDate.toISOString(), endDate: endDate ? endDate.toISOString() : null }
       );
       return result.records[0].get('r').properties;
     } finally {
@@ -112,7 +111,6 @@ export class Neo4jService {
     }
   }
 
-  // User HAS_SKILL Skill
   async createHasSkillRelationship(userId: string, skillName: string, level: string, yearsOfExperience?: number) {
     const session = this.getSession();
     try {
@@ -129,7 +127,6 @@ export class Neo4jService {
     }
   }
 
-  // User APPLIED_FOR JobPosting
   async createApplicationRelationship(userId: string, jobId: string, status: string, matchScore?: number) {
     const session = this.getSession();
     try {
@@ -145,7 +142,6 @@ export class Neo4jService {
     }
   }
 
-  // Company POSTED JobPosting
   async createPostedByRelationship(companyId: string, jobId: string) {
     const session = this.getSession();
     try {
@@ -161,7 +157,6 @@ export class Neo4jService {
     }
   }
 
-  // User ENROLLED_IN / COMPLETED Course
   async createCourseRelationship(userId: string, courseId: string, status: 'ENROLLED_IN' | 'COMPLETED', progress?: number) {
     const session = this.getSession();
     try {
@@ -177,7 +172,6 @@ export class Neo4jService {
     }
   }
 
-  // User RECOMMENDED_TO User (networking)
   async createRecommendationRelationship(fromUserId: string, toUserId: string) {
     const session = this.getSession();
     try {
@@ -193,7 +187,6 @@ export class Neo4jService {
     }
   }
 
-  // User MENTORS User
   async createMentorRelationship(mentorId: string, menteeId: string) {
     const session = this.getSession();
     try {
@@ -209,7 +202,6 @@ export class Neo4jService {
     }
   }
   
-  // Encontrar candidatos que matchean con un job posting
   async findMatchingCandidates(jobId: string, requiredSkills: string[], limit: number = 10) {
     const session = this.getSession();
     try {
@@ -224,7 +216,7 @@ export class Neo4jService {
                 (matchingSkills * 100.0 / $totalRequired) as matchScore
          ORDER BY matchScore DESC
          LIMIT $limit`,
-        { jobId, requiredSkills, totalRequired: requiredSkills.length, limit }
+        { jobId, requiredSkills, totalRequired: requiredSkills.length, limit: neo4j.int(limit) }
       );
       return result.records.map(record => ({
         userId: record.get('userId'),
@@ -239,7 +231,6 @@ export class Neo4jService {
     }
   }
 
-  // Recomendar cursos basados en skills de contactos
   async recommendCoursesBasedOnNetwork(userId: string, limit: number = 5) {
     const session = this.getSession();
     try {
@@ -252,7 +243,7 @@ export class Neo4jService {
                 connections
          ORDER BY connections DESC
          LIMIT $limit`,
-        { userId, limit }
+        { userId, limit: neo4j.int(limit) }
       );
       return result.records.map(record => ({
         courseId: record.get('courseId'),
@@ -265,7 +256,6 @@ export class Neo4jService {
     }
   }
 
-  // Historial de aplicaciones de un usuario
   async getUserApplicationHistory(userId: string) {
     const session = this.getSession();
     try {
@@ -289,7 +279,6 @@ export class Neo4jService {
     }
   }
 
-  // Encontrar usuarios que trabajaron en la misma empresa
   async findColleagues(userId: string) {
     const session = this.getSession();
     try {
@@ -311,7 +300,6 @@ export class Neo4jService {
     }
   }
 
-  // Recomendar jobs basados en skills del usuario
   async recommendJobsForUser(userId: string, limit: number = 10) {
     const session = this.getSession();
     try {
@@ -330,7 +318,7 @@ export class Neo4jService {
                 (SIZE(matchingSkills) * 100.0 / SIZE(userSkills)) as matchScore
          ORDER BY matchScore DESC
          LIMIT $limit`,
-        { userId, limit }
+        { userId, limit: neo4j.int(limit) }
       );
       return result.records.map(record => ({
         jobId: record.get('jobId'),
@@ -345,7 +333,6 @@ export class Neo4jService {
     }
   }
 
-  // Actualizar status de una aplicación
   async updateApplicationStatus(userId: string, jobId: string, newStatus: string) {
     const session = this.getSession();
     try {
@@ -361,7 +348,6 @@ export class Neo4jService {
     }
   }
 
-  // Cleanup: cerrar el driver cuando termine la app
   async close() {
     await this.driver.close();
   }

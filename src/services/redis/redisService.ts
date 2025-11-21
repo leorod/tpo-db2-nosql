@@ -10,7 +10,6 @@ export class RedisService {
     this.client = client;
   }
 
-
   async set(key: string, value: any, ttl: number = this.DEFAULT_TTL): Promise<void> {
     const stringValue = JSON.stringify(value);
     await this.client.setEx(key, ttl, stringValue);
@@ -42,7 +41,6 @@ export class RedisService {
       await this.client.del(keys);
     }
   }
-
 
   async cacheUser(userId: string, userData: any, ttl: number = 1800): Promise<void> {
     await this.set(`user:${userId}`, userData, ttl);
@@ -121,8 +119,84 @@ export class RedisService {
     return await this.get(`course:recommendations:${userId}`);
   }
 
+  async cacheAllCourses(courses: any[], ttl: number = 3600): Promise<void> {
+    await this.set('courses:all', courses, ttl);
+  }
+
+  async getCachedAllCourses(): Promise<any[] | null> {
+    return await this.get('courses:all');
+  }
+
+  async invalidateCourseCache(courseId?: string): Promise<void> {
+    if (courseId) {
+      await this.delete(`course:${courseId}`);
+    }
+    await this.delete('courses:all');
+  }
+
+  async cacheAllCompanies(companies: any[], ttl: number = 3600): Promise<void> {
+    await this.set('companies:all', companies, ttl);
+  }
+
+  async getCachedAllCompanies(): Promise<any[] | null> {
+    return await this.get('companies:all');
+  }
+
+  async invalidateCompanyCache(): Promise<void> {
+    await this.delete('companies:all');
+  }
+
+  async cacheUserStats(userId: string, stats: any, ttl: number = 1800): Promise<void> {
+    await this.set(`user:${userId}:stats`, stats, ttl);
+  }
+
+  async getCachedUserStats(userId: string): Promise<any | null> {
+    return await this.get(`user:${userId}:stats`);
+  }
+
+  async invalidateUserStats(userId: string): Promise<void> {
+    await this.delete(`user:${userId}:stats`);
+  }
+
+  async cacheUserApplications(userId: string, applications: any[], ttl: number = 300): Promise<void> {
+    await this.set(`applications:user:${userId}`, applications, ttl);
+  }
+
+  async getCachedUserApplications(userId: string): Promise<any[] | null> {
+    return await this.get(`applications:user:${userId}`);
+  }
+
+  async cacheJobApplications(jobId: string, applications: any[], ttl: number = 300): Promise<void> {
+    await this.set(`applications:job:${jobId}`, applications, ttl);
+  }
+
+  async getCachedJobApplications(jobId: string): Promise<any[] | null> {
+    return await this.get(`applications:job:${jobId}`);
+  }
+
+  async invalidateApplicationsCache(userId?: string, jobId?: string): Promise<void> {
+    if (userId) {
+      await this.delete(`applications:user:${userId}`);
+      await this.delete(`user:${userId}:stats`);
+    }
+    if (jobId) {
+      await this.delete(`applications:job:${jobId}`);
+    }
+  }
+
+  async cacheUserCourses(userId: string, courses: any[], ttl: number = 600): Promise<void> {
+    await this.set(`courses:user:${userId}`, courses, ttl);
+  }
+
+  async getCachedUserCourses(userId: string): Promise<any[] | null> {
+    return await this.get(`courses:user:${userId}`);
+  }
+
+  async invalidateUserCourses(userId: string): Promise<void> {
+    await this.delete(`courses:user:${userId}`);
+  }
+
   async createSession(sessionId: string, userData: any, ttl: number = 86400): Promise<void> {
-    // TTL por defecto: 24 horas
     await this.set(`session:${sessionId}`, userData, ttl);
   }
 
@@ -183,7 +257,6 @@ export class RedisService {
     await this.client.set(`counter:${key}`, value.toString());
   }
 
-  // Estadísticas de aplicaciones en tiempo real
   async trackApplicationSubmitted(jobId: string): Promise<void> {
     await this.incrementCounter(`job:${jobId}:applications`);
     await this.incrementCounter('applications:total:today');

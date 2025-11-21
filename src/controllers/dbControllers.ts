@@ -85,8 +85,9 @@ export class TalentumController {
       
       const user = await this.mongoService.updateUser(userId, updateData);
       
-      // Invalidar caché
+      // Invalidar caché del usuario y sus stats
       await this.redisService.invalidateUserCache(userId);
+      await this.redisService.invalidateUserStats(userId);
       
       res.json({ success: true, data: user });
     } catch (error: any) {
@@ -97,7 +98,16 @@ export class TalentumController {
   getUserStats = async (req: Request, res: Response) => {
     try {
       const { userId } = req.params;
-      const stats = await this.mongoService.getUserStats(userId);
+      
+      // Intentar obtener de caché
+      let stats = await this.redisService.getCachedUserStats(userId);
+      
+      if (!stats) {
+        // Si no está en caché, calcular stats (operación costosa)
+        stats = await this.mongoService.getUserStats(userId);
+        await this.redisService.cacheUserStats(userId, stats);
+      }
+      
       res.json({ success: true, data: stats });
     } catch (error: any) {
       res.status(500).json({ success: false, error: error.message });
@@ -117,6 +127,9 @@ export class TalentumController {
         industry: company.industry
       });
       
+      // Invalidar caché de empresas
+      await this.redisService.invalidateCompanyCache();
+      
       res.status(201).json({ success: true, data: company });
     } catch (error: any) {
       res.status(500).json({ success: false, error: error.message });
@@ -125,7 +138,15 @@ export class TalentumController {
 
   getAllCompanies = async (req: Request, res: Response) => {
     try {
-      const companies = await this.mongoService.getAllCompanies();
+      // Intentar obtener de caché
+      let companies = await this.redisService.getCachedAllCompanies();
+      
+      if (!companies) {
+        // Si no está en caché, buscar en MongoDB
+        companies = await this.mongoService.getAllCompanies();
+        await this.redisService.cacheAllCompanies(companies);
+      }
+      
       res.json({ success: true, data: companies });
     } catch (error: any) {
       res.status(500).json({ success: false, error: error.message });
@@ -240,6 +261,9 @@ export class TalentumController {
         timestamp: new Date()
       });
       
+      // Invalidar cachés de aplicaciones y stats
+      await this.redisService.invalidateApplicationsCache(userId, jobPostingId);
+      
       res.status(201).json({ success: true, data: application, matchScore });
     } catch (error: any) {
       res.status(500).json({ success: false, error: error.message });
@@ -249,7 +273,16 @@ export class TalentumController {
   getUserApplications = async (req: Request, res: Response) => {
     try {
       const { userId } = req.params;
-      const applications = await this.mongoService.getApplicationsByUser(userId);
+      
+      // Intentar obtener de caché
+      let applications = await this.redisService.getCachedUserApplications(userId);
+      
+      if (!applications) {
+        // Si no está en caché, buscar en MongoDB
+        applications = await this.mongoService.getApplicationsByUser(userId);
+        await this.redisService.cacheUserApplications(userId, applications);
+      }
+      
       res.json({ success: true, data: applications });
     } catch (error: any) {
       res.status(500).json({ success: false, error: error.message });
@@ -259,7 +292,16 @@ export class TalentumController {
   getJobApplications = async (req: Request, res: Response) => {
     try {
       const { jobId } = req.params;
-      const applications = await this.mongoService.getApplicationsByJobPosting(jobId);
+      
+      // Intentar obtener de caché
+      let applications = await this.redisService.getCachedJobApplications(jobId);
+      
+      if (!applications) {
+        // Si no está en caché, buscar en MongoDB
+        applications = await this.mongoService.getApplicationsByJobPosting(jobId);
+        await this.redisService.cacheJobApplications(jobId, applications);
+      }
+      
       res.json({ success: true, data: applications });
     } catch (error: any) {
       res.status(500).json({ success: false, error: error.message });
@@ -283,6 +325,12 @@ export class TalentumController {
           application.userId.toString(),
           application.jobPostingId.toString(),
           status
+        );
+        
+        // Invalidar cachés de aplicaciones y stats
+        await this.redisService.invalidateApplicationsCache(
+          application.userId.toString(),
+          application.jobPostingId.toString()
         );
       }
       
@@ -372,6 +420,9 @@ export class TalentumController {
         category: course.category
       });
       
+      // Invalidar caché de cursos
+      await this.redisService.invalidateCourseCache();
+      
       res.status(201).json({ success: true, data: course });
     } catch (error: any) {
       res.status(500).json({ success: false, error: error.message });
@@ -380,7 +431,15 @@ export class TalentumController {
 
   getAllCourses = async (req: Request, res: Response) => {
     try {
-      const courses = await this.mongoService.getAllCourses();
+      // Intentar obtener de caché
+      let courses = await this.redisService.getCachedAllCourses();
+      
+      if (!courses) {
+        // Si no está en caché, buscar en MongoDB
+        courses = await this.mongoService.getAllCourses();
+        await this.redisService.cacheAllCourses(courses);
+      }
+      
       res.json({ success: true, data: courses });
     } catch (error: any) {
       res.status(500).json({ success: false, error: error.message });
@@ -396,6 +455,9 @@ export class TalentumController {
       
       // Crear relación en Neo4j
       await this.neo4jService.createCourseRelationship(userId, courseId, 'ENROLLED_IN', 0);
+      
+      // Invalidar caché de cursos del usuario
+      await this.redisService.invalidateUserCourses(userId);
       
       res.status(201).json({ success: true, data: learningPath });
     } catch (error: any) {
@@ -414,6 +476,9 @@ export class TalentumController {
         { progressPercentage, status }
       );
       
+      // Invalidar caché de cursos del usuario
+      await this.redisService.invalidateUserCourses(userId);
+      
       res.json({ success: true, data: learningPath });
     } catch (error: any) {
       res.status(500).json({ success: false, error: error.message });
@@ -423,7 +488,16 @@ export class TalentumController {
   getUserCourses = async (req: Request, res: Response) => {
     try {
       const { userId } = req.params;
-      const courses = await this.mongoService.getUserLearningPaths(userId);
+      
+      // Intentar obtener de caché
+      let courses = await this.redisService.getCachedUserCourses(userId);
+      
+      if (!courses) {
+        // Si no está en caché, buscar en MongoDB
+        courses = await this.mongoService.getUserLearningPaths(userId);
+        await this.redisService.cacheUserCourses(userId, courses);
+      }
+      
       res.json({ success: true, data: courses });
     } catch (error: any) {
       res.status(500).json({ success: false, error: error.message });

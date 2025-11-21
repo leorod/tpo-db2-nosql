@@ -8,20 +8,15 @@ const seedDatabase = async () => {
   console.log('🌱 Iniciando seed de la base de datos...\n');
 
   try {
-    // Conectar a las bases de datos
     await connectMongoDB();
     const neo4jDriver = connectNeo4j();
     const redisClient = await connectRedis();
 
     const mongoService = new MongoDBService();
     const neo4jService = new Neo4jService(neo4jDriver);
-
-    // Limpiar datos anteriores (opcional - comentar si no quieres limpiar)
-    // await redisClient.flushAll();
     
     console.log('📊 Creando empresas...');
     
-    // Crear empresas
     const companies = await Promise.all([
       mongoService.createCompany({
         name: 'TechCorp Solutions',
@@ -52,19 +47,13 @@ const seedDatabase = async () => {
       })
     ]);
 
-    // Crear nodos de empresas en Neo4j
     for (const company of companies) {
-      await neo4jService.createCompanyNode(company._id.toString(), {
+      await neo4jService.createCompanyNode(company.id.toString(), {
         name: company.name,
         industry: company.industry
       });
     }
 
-    console.log(`✅ ${companies.length} empresas creadas\n`);
-
-    console.log('👥 Creando usuarios...');
-
-    // Crear usuarios
     const users = await Promise.all([
       mongoService.createUser({
         name: 'Juan Pérez',
@@ -163,31 +152,28 @@ const seedDatabase = async () => {
       })
     ]);
 
-    // Crear nodos de usuarios en Neo4j
     for (const user of users) {
-      await neo4jService.createUserNode(user._id.toString(), {
+      await neo4jService.createUserNode(user.id.toString(), {
         name: user.name,
         email: user.email,
         location: user.location
       });
 
-      // Crear relaciones de skills
       for (const skill of user.skills) {
         await neo4jService.createHasSkillRelationship(
-          user._id.toString(),
+          user.id.toString(),
           skill.name,
           skill.level,
           skill.yearsOfExperience
         );
       }
 
-      // Crear relaciones de trabajo
       for (const exp of user.experience) {
         const company = companies.find(c => c.name === exp.company);
         if (company) {
           await neo4jService.createWorksAtRelationship(
-            user._id.toString(),
-            company._id.toString(),
+            user.id.toString(),
+            company.id.toString(),
             exp.role,
             exp.startDate,
             exp.endDate
@@ -196,11 +182,7 @@ const seedDatabase = async () => {
       }
     }
 
-    console.log(`✅ ${users.length} usuarios creados\n`);
 
-    console.log('💼 Creando ofertas laborales...');
-
-    // Crear ofertas laborales
     const jobs = await Promise.all([
       mongoService.createJobPosting({
         title: 'Senior Full-Stack Developer',
@@ -253,24 +235,18 @@ const seedDatabase = async () => {
       })
     ]);
 
-    // Crear nodos de jobs en Neo4j
     for (const job of jobs) {
-      await neo4jService.createJobPostingNode(job._id.toString(), {
+      await neo4jService.createJobPostingNode(job.id.toString(), {
         title: job.title,
         location: job.location
       });
 
       await neo4jService.createPostedByRelationship(
         job.companyId.toString(),
-        job._id.toString()
+        job.id.toString()
       );
     }
 
-    console.log(`✅ ${jobs.length} ofertas laborales creadas\n`);
-
-    console.log('📚 Creando cursos...');
-
-    // Crear cursos
     const courses = await Promise.all([
       mongoService.createCourse({
         title: 'React Avanzado: Hooks y Context API',
@@ -311,22 +287,16 @@ const seedDatabase = async () => {
       })
     ]);
 
-    // Crear nodos de cursos en Neo4j
     for (const course of courses) {
-      await neo4jService.createCourseNode(course._id.toString(), {
+      await neo4jService.createCourseNode(course.id.toString(), {
         title: course.title,
         category: course.category
       });
     }
 
-    console.log(`✅ ${courses.length} cursos creados\n`);
-
-    console.log('📝 Creando aplicaciones de ejemplo...');
-
-    // Crear algunas aplicaciones
     const matchScore1 = await mongoService.calculateMatchScore(
-      users[0]._id.toString(),
-      jobs[0]._id.toString()
+      users[0].id.toString(),
+      jobs[0].id.toString()
     );
 
     await mongoService.createApplication({
@@ -337,25 +307,18 @@ const seedDatabase = async () => {
     });
 
     await neo4jService.createApplicationRelationship(
-      users[0]._id.toString(),
-      jobs[0]._id.toString(),
+      users[0].id.toString(),
+      jobs[0].id.toString(),
       'Applied',
       matchScore1
     );
 
-    console.log('✅ Aplicaciones creadas\n');
-
-    console.log('🤝 Creando relaciones de networking...');
-
-    // Crear algunas recomendaciones entre usuarios
     await neo4jService.createRecommendationRelationship(
-      users[0]._id.toString(),
-      users[2]._id.toString()
+      users[0].id.toString(),
+      users[2].id.toString()
     );
 
-    console.log('✅ Relaciones de networking creadas\n');
 
-    // Cerrar conexiones
     await neo4jService.close();
     await redisClient.quit();
 

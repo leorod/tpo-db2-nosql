@@ -225,41 +225,40 @@ export class MongoDBService {
     const userSkills = user.skills.map(s => s.name.toLowerCase());
     const requiredSkills = job.requiredSkills.map(s => s.toLowerCase());
 
-    // Calcular skills que coinciden
+    if (requiredSkills.length === 0) return 50;
+
     const matchingSkills = userSkills.filter(skill => requiredSkills.includes(skill));
     
-    // Score básico basado en skills
+    if (matchingSkills.length === 0) return 0;
+
     let score = (matchingSkills.length / requiredSkills.length) * 100;
 
-    // Ajustar por nivel de experiencia
     const userSkillLevels = user.skills.filter(s => matchingSkills.includes(s.name.toLowerCase()));
-    const avgLevel = userSkillLevels.reduce((sum, skill) => {
-      const levelScore = { 'Beginner': 1, 'Intermediate': 2, 'Advanced': 3, 'Expert': 4 }[skill.level] || 1;
-      return sum + levelScore;
-    }, 0) / userSkillLevels.length;
+    
+    if (userSkillLevels.length > 0) {
+      const avgLevel = userSkillLevels.reduce((sum, skill) => {
+        const levelScore = { 'Beginner': 1, 'Intermediate': 2, 'Advanced': 3, 'Expert': 4 }[skill.level] || 1;
+        return sum + levelScore;
+      }, 0) / userSkillLevels.length;
 
-    // Bonus por nivel de expertise
-    score += (avgLevel / 4) * 20;
+      score += (avgLevel / 4) * 20;
+    }
 
     return Math.min(Math.round(score), 100);
   }
 
-  // Encontrar mejores candidatos para un job
   async findTopCandidatesForJob(jobPostingId: string, limit: number = 10) {
     const job = await JobPosting.findById(jobPostingId);
     if (!job) return [];
 
     const requiredSkills = job.requiredSkills.map(s => s.toLowerCase());
 
-    // Buscar usuarios que tengan al menos una skill requerida
     const candidates = await User.find({
       'skills.name': { $in: job.requiredSkills }
     });
 
-    // Calcular score para cada candidato
     const candidatesWithScores = await Promise.all(
       candidates.map(async (candidate: any) => {
-        // Ensure candidate._id is defined and is a string or can be converted
         const candidateId = typeof candidate._id === 'object' && candidate._id?.toString
           ? candidate._id.toString()
           : String(candidate._id);
@@ -273,31 +272,26 @@ export class MongoDBService {
     );
     
 
-    // Ordenar por score y retornar top N
     return candidatesWithScores
       .sort((a, b) => b.matchScore - a.matchScore)
       .slice(0, limit);
   }
 
-  // Recomendar jobs para un usuario
   async recommendJobsForUser(userId: string, limit: number = 10) {
     const user = await User.findById(userId);
     if (!user) return [];
 
     const userSkills = user.skills.map(s => s.name);
 
-    // Buscar jobs activos que requieran las skills del usuario
     const jobs = await JobPosting.find({
       isActive: true,
       requiredSkills: { $in: userSkills }
     }).populate('companyId');
 
-    // Calcular score para cada job
     const jobsWithScores = await Promise.all(
       jobs.map(async (job) => {
         const score = await this.calculateMatchScore(userId, (job as any)._id.toString());
         
-        // Verificar si ya aplicó
         const existingApplication = await Application.findOne({
           userId,
           jobPostingId: job._id
@@ -311,14 +305,12 @@ export class MongoDBService {
       })
     );
 
-    // Filtrar jobs a los que no aplicó y ordenar por score
     return jobsWithScores
       .filter(j => !j.alreadyApplied)
       .sort((a, b) => b.matchScore - a.matchScore)
       .slice(0, limit);
   }
 
-  // Estadísticas de un usuario
   async getUserStats(userId: string) {
     const applications = await Application.find({ userId });
     const learningPaths = await LearningPath.find({ userId });
