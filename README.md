@@ -1,96 +1,531 @@
-# 🔧 Talentum+ Backend
+# 🎓 Talentum+ Platform - TPO Bases de Datos 2
 
-Backend API para la plataforma Talentum+ - Sistema de desarrollo profesional y matching laboral.
+## 📋 Descripción del Proyecto
 
-## 📖 Documentación Completa
+**Talentum+** es una plataforma integral de desarrollo profesional y matching laboral que conecta profesionales, empresas, cursos y oportunidades laborales. El sistema implementa una arquitectura multi-base de datos para optimizar diferentes aspectos de la aplicación.
 
-Para documentación completa del proyecto (instalación, arquitectura, bases de datos, etc.), ver el [README principal](../README.md).
+### 🎯 Funcionalidades Principales
+
+- 👥 **Gestión de Usuarios y Perfiles**: Usuarios con skills, experiencia y educación
+- 🏢 **Directorio de Empresas**: Información completa de empresas y sus ofertas
+- 💼 **Ofertas Laborales**: Publicación y gestión de ofertas de trabajo
+- 📚 **Plataforma de Cursos**: Catálogo de cursos con inscripciones y seguimiento de progreso
+- 🤝 **Networking Profesional**: Conexiones entre colegas, mentorías y recomendaciones
+- 🎯 **Sistema de Matching**: Recomendaciones inteligentes de empleos y cursos
+- 📊 **Analytics y Seguimiento**: Historial de aplicaciones y actividad de usuarios
+- 🏆 **Certificaciones**: Gestión de certificaciones profesionales
 
 ---
 
-## 🚀 Quick Start
+## 🏗️ Arquitectura del Sistema
 
-### 1. Levantar Bases de Datos
+### Arquitectura Multi-Base de Datos
 
-```bash
-docker-compose up -d
+El proyecto implementa una arquitectura **polyglot persistence**, utilizando diferentes bases de datos según las necesidades específicas de cada dominio:
+
+```
+┌─────────────────────────────────────────────────────────┐
+│              Backend API (Node.js + Express)            │
+│              http://localhost:3000/api                  │
+└──────┬──────────────┬──────────────┬────────────────────┘
+       │              │              │
+       ▼              ▼              ▼
+┌──────────────┐ ┌──────────┐ ┌────────────┐
+│   MongoDB    │ │  Neo4j   │ │   Redis    │
+│   :27017     │ │  :7687   │ │   :6379    │
+│              │ │  :7474   │ │            │
+└──────────────┘ └──────────┘ └────────────┘
 ```
 
-### 2. Configurar Variables de Entorno
+### 📊 Distribución de Datos por Base de Datos
 
-Crear archivo `.env`:
+#### 🍃 MongoDB (Base de Datos Documental)
+**Puerto:** 27017  
+**Propósito:** Almacenamiento de documentos con esquemas flexibles y datos anidados
 
-```env
+**Colecciones:**
+- **Users**: Perfiles de usuarios con skills, experiencia, educación
+- **Companies**: Información de empresas
+- **JobPostings**: Ofertas laborales con requisitos y beneficios
+- **Courses**: Catálogo de cursos con materiales
+- **Applications**: Aplicaciones a trabajos con entrevistas
+- **Enrollments**: Inscripciones a cursos con progreso y scores
+- **Certifications**: Certificaciones profesionales
+
+**Por qué MongoDB:**
+- Esquemas flexibles para perfiles de usuario con diferentes atributos
+- Documentos anidados para skills, experiencia y educación
+- Arrays embebidos para múltiples entidades relacionadas
+- Consultas rápidas sobre documentos completos
+
+#### 🌐 Neo4j (Base de Datos de Grafos)
+**Puerto HTTP:** 7474 (Neo4j Browser)  
+**Puerto Bolt:** 7687 (Conexión de aplicación)  
+**Propósito:** Modelado de relaciones complejas y recomendaciones
+
+**Nodos:**
+- **User**: Usuarios de la plataforma
+- **Company**: Empresas
+- **Skill**: Habilidades profesionales
+- **Course**: Cursos disponibles
+
+**Relaciones:**
+- `WORKS_AT`: Usuario → Empresa (con atributos de rol y fechas)
+- `HAS_SKILL`: Usuario → Skill (con nivel de experiencia)
+- `APPLIED_TO`: Usuario → JobPosting (estado de aplicación)
+- `ENROLLED_IN`: Usuario → Course (progreso)
+- `REQUIRES_SKILL`: JobPosting → Skill (nivel requerido)
+- `TEACHES_SKILL`: Course → Skill
+- `COLLEAGUE_OF`: Usuario ↔ Usuario
+- `MENTORS`: Usuario → Usuario
+- `RECOMMENDS`: Usuario → Usuario (recomendaciones profesionales)
+
+**Por qué Neo4j:**
+- Queries de traversal eficientes para recomendaciones
+- Análisis de rutas entre entidades (grados de separación)
+- Matching de candidatos basado en skills compartidas
+- Detección de patrones en redes profesionales
+- Consultas tipo "encuentra colegas de colegas"
+
+#### 🚀 Redis (Cache en Memoria)
+**Puerto:** 6379  
+**Propósito:** Cache de alto rendimiento y datos de sesión
+
+**Uso:**
+- **Cache de Consultas**: Resultados de búsquedas frecuentes
+- **Cache de Usuario**: Estadísticas y perfiles
+- **Cache de Jobs**: Listados de trabajos activos
+- **Cache de Empresas**: Directorio de empresas
+- **Datos de Sesión**: Información temporal de usuario
+
+**Estrategia de Cache:**
+- TTL (Time To Live) de 1 hora para datos dinámicos
+- Invalidación manual en operaciones de escritura
+- Patrón de cache-aside (lazy loading)
+
+**Por qué Redis:**
+- Respuestas en milisegundos para consultas frecuentes
+- Reducción de carga en bases de datos primarias
+- Escalabilidad horizontal
+- Soporte nativo para estructuras de datos complejas
+
+---
+
+## 🛠️ Stack Tecnológico
+
+### Backend
+- **Runtime**: Node.js 18+
+- **Framework**: Express 5
+- **Lenguaje**: TypeScript
+- **ODM/ORM**: Mongoose (MongoDB)
+- **Graph Driver**: neo4j-driver
+- **Cache Client**: redis
+- **Build Tool**: TSC (TypeScript Compiler)
+- **Dev Tool**: Nodemon
+
+### Bases de Datos
+- **MongoDB 7**: Base de datos documental
+- **Neo4j 5.15**: Base de datos de grafos (con APOC)
+- **Redis 7**: Cache en memoria
+
+### DevOps
+- **Containerización**: Docker & Docker Compose
+- **Orquestación**: Docker Compose para desarrollo local
+
+---
+
+## 📋 Prerequisitos
+
+Antes de comenzar, asegúrate de tener instalado:
+
+- **Node.js** >= 18.0.0 ([Descargar](https://nodejs.org/))
+- **npm** >= 9.0.0 (viene con Node.js)
+- **Docker Desktop** ([Descargar](https://www.docker.com/products/docker-desktop))
+- **Docker Compose** (incluido en Docker Desktop)
+- **Git** ([Descargar](https://git-scm.com/))
+
+### Verificar Instalaciones
+
+```bash
+node --version    # Debe ser >= v18.0.0
+npm --version     # Debe ser >= 9.0.0
+docker --version  # Debe estar instalado
+docker-compose --version  # Debe estar instalado
+git --version     # Debe estar instalado
+```
+
+---
+
+## 🚀 Instalación y Configuración
+
+### 1. Clonar el Repositorio
+
+```bash
+# Clonar el proyecto
+git clone https://github.com/tu-usuario/tpo-db2.git
+cd tpo-db2/backend
+```
+
+### 2. Configuración de Variables de Entorno
+
+Crear archivo `.env` en la carpeta raíz del backend:
+
+```bash
+cat > .env << 'EOF'
+# Server Configuration
 PORT=3000
 NODE_ENV=development
 
+# MongoDB Configuration
 MONGO_ROOT_USER=admin
 MONGO_ROOT_PASSWORD=db2passwordsecure!
 MONGO_DB=talentum_db
 MONGO_URI=mongodb://admin:db2passwordsecure!@localhost:27017/talentum_db?authSource=admin
 
+# Neo4j Configuration
 NEO4J_URI=bolt://localhost:7687
 NEO4J_USER=neo4j
 NEO4J_PASSWORD=db2passwordsecure!
 
+# Redis Configuration
 REDIS_URI=redis://localhost:6379
+EOF
 ```
 
-### 3. Instalar y Ejecutar
+**Importante:** 
+- Las contraseñas deben coincidir con las del `docker-compose.yml`
+- No commitear el archivo `.env` a Git (ya está en `.gitignore`)
+
+### 3. Levantar Bases de Datos con Docker
+
+```bash
+# Levantar contenedores en background
+docker-compose up -d
+
+# Ver logs de contenedores
+docker-compose logs -f
+
+# Verificar que todos los contenedores estén corriendo
+docker-compose ps
+```
+
+**Contenedores que deben estar corriendo:**
+- `neo4j_db` - Neo4j Database (Puertos 7474, 7687)
+- `mongo_db` - MongoDB Database (Puerto 27017)
+- `redis_db` - Redis Cache (Puerto 6379)
+
+#### Acceso a las Bases de Datos
+
+**Neo4j Browser:**
+- URL: http://localhost:7474
+- Usuario: `neo4j`
+- Contraseña: `db2passwordsecure!`
+
+**MongoDB (usando MongoDB Compass):**
+- URI: `mongodb://admin:db2passwordsecure!@localhost:27017/talentum_db?authSource=admin`
+
+**Redis (usando redis-cli):**
+```bash
+docker exec -it redis_db redis-cli
+```
+
+### 4. Instalar Dependencias
 
 ```bash
 npm install
+```
+
+**Dependencias principales:**
+- express: Framework web
+- mongoose: ODM para MongoDB
+- neo4j-driver: Driver para Neo4j
+- redis: Cliente para Redis
+- typescript: Soporte TypeScript
+- dotenv: Variables de entorno
+
+### 5. Sembrar la Base de Datos (Seed)
+
+Una vez que las bases de datos están corriendo y las dependencias instaladas:
+
+```bash
 npm run seed
+```
+
+**El script de seed creará:**
+- ✅ 10+ usuarios con perfiles completos
+- ✅ 5 empresas
+- ✅ 15+ ofertas de trabajo
+- ✅ 20+ cursos
+- ✅ Aplicaciones de ejemplo
+- ✅ Inscripciones a cursos
+- ✅ Conexiones entre usuarios (Neo4j)
+- ✅ Relaciones de skills y mentorías
+- ✅ Cache inicial en Redis
+
+**Tiempo estimado:** 10-30 segundos
+
+**Output esperado:**
+```
+🌱 Iniciando seed de la base de datos...
+MongoDB connected successfully
+Neo4j connected successfully
+Redis connected successfully
+📊 Creando empresas...
+👥 Creando usuarios...
+💼 Creando ofertas de trabajo...
+📚 Creando cursos...
+📝 Creando aplicaciones...
+🎓 Creando inscripciones...
+🔗 Creando relaciones en Neo4j...
+✅ Seed completado exitosamente!
+```
+
+---
+
+## 🏃 Ejecución del Proyecto
+
+### Opción 1: Dos Terminales Separadas (Recomendado)
+
+**Terminal 1 - Bases de Datos:**
+```bash
+docker-compose up
+```
+
+**Terminal 2 - Backend:**
+```bash
 npm start
 ```
 
-**API disponible en:** http://localhost:3000/api
+### Opción 2: Background + Foreground
+
+**Paso 1 - Bases de datos en background:**
+```bash
+docker-compose up -d
+```
+
+**Paso 2 - Backend:**
+```bash
+npm start
+```
+
+### Acceso a la Aplicación
+
+Una vez que todo esté corriendo:
+
+- **Backend API**: http://localhost:3000/api
+- **Health Check**: http://localhost:3000/api/health
+- **Neo4j Browser**: http://localhost:7474
 
 ---
 
 ## 📜 Scripts Disponibles
 
 ```bash
-npm start              # Iniciar servidor con hot reload
-npm run build          # Compilar TypeScript
-npm run seed           # Sembrar base de datos
-npm run check          # Verificar datos en DBs
-npm run test-connection # Probar conexiones
-npm run clean          # Limpiar todas las DBs
-npm run diagnose       # Diagnosticar problemas
+# Desarrollo - Inicia servidor con hot reload
+npm start
+
+# Compilar TypeScript a JavaScript
+npm run build
+
+# Sembrar base de datos con datos de ejemplo
+npm run seed
+
+# Verificar datos en las bases de datos
+npm run check
+
+# Probar conexiones a bases de datos
+npm run test-connection
+
+# Limpiar todas las bases de datos
+npm run clean
+
+# Diagnosticar problemas de conexión
+npm run diagnose
+```
+
+### Docker
+
+```bash
+# Iniciar contenedores
+docker-compose up
+
+# Iniciar en background
+docker-compose up -d
+
+# Detener contenedores
+docker-compose down
+
+# Detener y eliminar volúmenes (CUIDADO: borra datos)
+docker-compose down -v
+
+# Ver logs
+docker-compose logs -f
+
+# Ver logs de un servicio específico
+docker-compose logs -f mongo_db
+docker-compose logs -f neo4j_db
+docker-compose logs -f redis_db
+
+# Reiniciar un servicio
+docker-compose restart mongo_db
+
+# Ver estado de contenedores
+docker-compose ps
+
+# Ejecutar comando en contenedor
+docker-compose exec mongo_db mongosh
+docker-compose exec redis_db redis-cli
 ```
 
 ---
 
-## 🗂️ Estructura
+## 🛣️ API Endpoints
+
+### Base URL
+```
+http://localhost:3000/api
+```
+
+### Health & Status
+```
+GET  /              # Health check
+GET  /health        # Health check detallado
+```
+
+### 👥 Usuarios
+```
+POST   /users                    # Crear usuario
+GET    /users                    # Obtener todos los usuarios
+GET    /users/:userId            # Obtener usuario por ID
+PUT    /users/:userId            # Actualizar usuario
+GET    /users/:userId/stats      # Estadísticas del usuario
+```
+
+### 🏢 Empresas
+```
+POST   /companies               # Crear empresa
+GET    /companies               # Obtener todas las empresas
+```
+
+### 💼 Ofertas de Trabajo
+```
+POST   /jobs                    # Crear oferta de trabajo
+GET    /jobs                    # Obtener ofertas activas
+GET    /jobs/:jobId             # Obtener oferta por ID
+GET    /matching/job/:jobId/candidates  # Candidatos matching
+```
+
+### 📝 Aplicaciones
+```
+POST   /applications            # Aplicar a trabajo
+GET    /applications/user/:userId        # Aplicaciones de usuario
+GET    /applications/job/:jobId          # Aplicaciones de trabajo
+PUT    /applications/:applicationId/status  # Actualizar estado
+POST   /applications/:applicationId/interviews  # Agregar entrevista
+GET    /applications/:applicationId/interviews  # Ver entrevistas
+PUT    /applications/:applicationId/interviews/:index  # Actualizar entrevista
+```
+
+### 📚 Cursos
+```
+POST   /courses                 # Crear curso
+GET    /courses                 # Obtener todos los cursos
+POST   /courses/enroll          # Inscribirse a curso
+PUT    /courses/:userId/:courseId/progress  # Actualizar progreso
+PUT    /courses/:userId/:courseId/score     # Actualizar puntaje
+GET    /courses/user/:userId    # Cursos de usuario
+GET    /courses/:userId/scores  # Puntajes de usuario
+```
+
+### 🎯 Recomendaciones
+```
+GET    /recommendations/user/:userId/jobs     # Jobs recomendados
+GET    /recommendations/user/:userId/courses  # Cursos recomendados
+```
+
+### 🏆 Certificaciones
+```
+POST   /certifications                      # Crear certificación
+GET    /certifications/user/:userId         # Certificaciones de usuario
+GET    /certifications/user/:userId/active  # Certificaciones activas
+GET    /certifications/:certificationId     # Obtener por ID
+PUT    /certifications/:certificationId     # Actualizar certificación
+DELETE /certifications/:certificationId     # Eliminar certificación
+GET    /certifications/skill/:skill         # Por skill
+```
+
+### 🤝 Red Profesional
+```
+GET    /network/:userId/colleagues   # Obtener colegas
+POST   /network/recommend           # Agregar recomendación
+POST   /network/mentorship          # Crear mentoría
+```
+
+### 📊 Analytics
+```
+GET    /analytics/user/:userId/history   # Historial de aplicaciones
+GET    /analytics/user/:userId/activity  # Actividad reciente
+```
+
+### Ejemplos de Uso con cURL
+
+```bash
+# Health Check
+curl http://localhost:3000/api/health
+
+# Obtener todos los usuarios
+curl http://localhost:3000/api/users
+
+# Crear usuario
+curl -X POST http://localhost:3000/api/users \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Test User",
+    "email": "test@example.com",
+    "location": "Buenos Aires",
+    "skills": [{"name": "JavaScript", "level": "Advanced"}]
+  }'
+
+# Obtener trabajos
+curl http://localhost:3000/api/jobs
+
+# Aplicar a trabajo
+curl -X POST http://localhost:3000/api/applications \
+  -H "Content-Type: application/json" \
+  -d '{"userId": "USER_ID", "jobPostingId": "JOB_ID"}'
+```
+
+---
+
+## 📁 Estructura del Proyecto
 
 ```
 backend/
 ├── src/
-│   ├── config/
-│   │   └── database.ts          # Conexiones a MongoDB, Neo4j, Redis
-│   ├── controllers/
-│   │   └── dbControllers.ts     # Lógica de negocio y endpoints
-│   ├── models/
+│   ├── config/              # Configuraciones
+│   │   └── database.ts      # Conexiones a DBs
+│   ├── controllers/         # Controladores
+│   │   └── dbControllers.ts # Lógica de negocio
+│   ├── models/              # Modelos de datos
 │   │   └── mongodb/
-│   │       └── mongodbModel.ts  # Schemas de Mongoose
-│   ├── routes/
-│   │   └── routes.ts            # Definición de rutas API
-│   ├── services/
+│   │       └── mongodbModel.ts  # Schemas Mongoose
+│   ├── routes/              # Definición de rutas
+│   │   └── routes.ts
+│   ├── services/            # Servicios de DB
 │   │   ├── mongodb/
-│   │   │   └── mongodbService.ts  # Operaciones MongoDB
+│   │   │   └── mongodbService.ts
 │   │   ├── neo4j/
-│   │   │   └── neoService.ts      # Operaciones Neo4j
+│   │   │   └── neoService.ts
 │   │   └── redis/
-│   │       └── redisService.ts    # Operaciones Redis
-│   ├── utils/
-│   │   ├── seed.ts              # Script de seed
-│   │   └── utils.ts             # Utilidades
-│   └── index.ts                 # Entry point
-├── scripts/
-│   ├── modelo-mongo.json        # Modelo de datos MongoDB
-│   └── neo4j.cypher            # Queries Neo4j de ejemplo
-├── docker-compose.yml           # Definición de servicios Docker
+│   │       └── redisService.ts
+│   ├── utils/               # Utilidades
+│   │   ├── seed.ts          # Script de seed
+│   │   └── utils.ts
+│   └── index.ts             # Entry point
+├── scripts/                 # Scripts externos
+│   ├── modelo-mongo.json    # Modelo MongoDB
+│   └── neo4j.cypher        # Queries Neo4j
+├── docker-compose.yml       # Orquestación Docker
 ├── package.json
 ├── tsconfig.json
 └── README.md
@@ -98,124 +533,74 @@ backend/
 
 ---
 
-## 🛢️ Bases de Datos
-
-### MongoDB (Puerto 27017)
-**Uso:** Almacenamiento de documentos (usuarios, empresas, trabajos, cursos)
-
-**Acceso:**
-- URI: `mongodb://admin:db2passwordsecure!@localhost:27017/talentum_db?authSource=admin`
-- Con MongoDB Compass: Conectar usando la URI
-
-**Colecciones:**
-- `users` - Perfiles de usuarios
-- `companies` - Empresas
-- `jobpostings` - Ofertas de trabajo
-- `courses` - Cursos
-- `applications` - Aplicaciones a trabajos
-- `enrollments` - Inscripciones a cursos
-- `certifications` - Certificaciones
-
-### Neo4j (Puertos 7474, 7687)
-**Uso:** Relaciones y grafos (conexiones, recomendaciones, matching)
-
-**Acceso:**
-- Browser: http://localhost:7474
-- Usuario: `neo4j`
-- Contraseña: `db2passwordsecure!`
-
-**Nodos:** User, Company, Skill, Course
-
-**Relaciones:** WORKS_AT, HAS_SKILL, APPLIED_TO, ENROLLED_IN, REQUIRES_SKILL, TEACHES_SKILL, COLLEAGUE_OF, MENTORS, RECOMMENDS
-
-### Redis (Puerto 6379)
-**Uso:** Cache de consultas frecuentes
-
-**Acceso:**
-```bash
-docker exec -it redis_db redis-cli
-```
-
-**Patrones de cache:**
-- `user:*` - Datos de usuarios
-- `job:*` - Ofertas de trabajo
-- `company:*` - Empresas
-- `stats:*` - Estadísticas
-
----
-
-## 🛣️ API Endpoints
-
-### Health
-- `GET /api/health` - Health check
-
-### Users
-- `POST /api/users` - Crear usuario
-- `GET /api/users` - Listar usuarios
-- `GET /api/users/:userId` - Obtener usuario
-- `PUT /api/users/:userId` - Actualizar usuario
-- `GET /api/users/:userId/stats` - Estadísticas
-
-### Companies
-- `POST /api/companies` - Crear empresa
-- `GET /api/companies` - Listar empresas
-
-### Jobs
-- `POST /api/jobs` - Crear oferta
-- `GET /api/jobs` - Listar ofertas
-- `GET /api/jobs/:jobId` - Obtener oferta
-- `GET /api/matching/job/:jobId/candidates` - Candidatos matching
-
-### Applications
-- `POST /api/applications` - Aplicar a trabajo
-- `GET /api/applications/user/:userId` - Aplicaciones de usuario
-- `GET /api/applications/job/:jobId` - Aplicaciones de trabajo
-- `PUT /api/applications/:applicationId/status` - Actualizar estado
-- `POST /api/applications/:applicationId/interviews` - Agregar entrevista
-- `GET /api/applications/:applicationId/interviews` - Ver entrevistas
-- `PUT /api/applications/:applicationId/interviews/:index` - Actualizar entrevista
-
-### Courses
-- `POST /api/courses` - Crear curso
-- `GET /api/courses` - Listar cursos
-- `POST /api/courses/enroll` - Inscribirse
-- `PUT /api/courses/:userId/:courseId/progress` - Actualizar progreso
-- `PUT /api/courses/:userId/:courseId/score` - Actualizar puntaje
-- `GET /api/courses/user/:userId` - Cursos de usuario
-- `GET /api/courses/:userId/scores` - Puntajes
-
-### Recommendations
-- `GET /api/recommendations/user/:userId/jobs` - Jobs recomendados
-- `GET /api/recommendations/user/:userId/courses` - Cursos recomendados
-
-### Certifications
-- `POST /api/certifications` - Crear certificación
-- `GET /api/certifications/user/:userId` - Certificaciones de usuario
-- `GET /api/certifications/user/:userId/active` - Certificaciones activas
-- `GET /api/certifications/:certificationId` - Obtener certificación
-- `PUT /api/certifications/:certificationId` - Actualizar certificación
-- `DELETE /api/certifications/:certificationId` - Eliminar certificación
-- `GET /api/certifications/skill/:skill` - Por skill
-
-### Network
-- `GET /api/network/:userId/colleagues` - Obtener colegas
-- `POST /api/network/recommend` - Agregar recomendación
-- `POST /api/network/mentorship` - Crear mentoría
-
-### Analytics
-- `GET /api/analytics/user/:userId/history` - Historial de aplicaciones
-- `GET /api/analytics/user/:userId/activity` - Actividad reciente
-
----
-
 ## 🔧 Desarrollo
 
-### Hot Reload
-El servidor se recarga automáticamente al detectar cambios en archivos `.ts`.
+### Workflow de Desarrollo
 
-### Debug con VS Code
+1. **Asegurarse que Docker esté corriendo**
+   ```bash
+   docker-compose ps  # Verificar contenedores
+   ```
 
-`.vscode/launch.json`:
+2. **Iniciar backend en modo dev**
+   ```bash
+   npm start  # Hot reload activado
+   ```
+
+3. **Hacer cambios en el código**
+   - Los cambios se recargan automáticamente con nodemon
+
+4. **Probar con cURL o Postman**
+   - API: http://localhost:3000/api
+
+### Tips de Desarrollo
+
+**Ver logs de MongoDB:**
+```bash
+docker-compose logs -f mongo_db
+```
+
+**Conectarse a Neo4j Browser:**
+1. Abrir http://localhost:7474
+2. Login con `neo4j` / `db2passwordsecure!`
+3. Ejecutar queries Cypher:
+
+```cypher
+// Ver todos los usuarios
+MATCH (u:User) RETURN u LIMIT 10;
+
+// Ver skills más comunes
+MATCH (u:User)-[r:HAS_SKILL]->(s:Skill)
+RETURN s.name, count(r) as users
+ORDER BY users DESC;
+
+// Ver conexiones entre usuarios
+MATCH (u1:User)-[:COLLEAGUE_OF]-(u2:User)
+RETURN u1, u2 LIMIT 20;
+```
+
+**Monitorear Redis:**
+```bash
+docker exec -it redis_db redis-cli MONITOR
+```
+
+**Limpiar cache de Redis:**
+```bash
+docker exec -it redis_db redis-cli FLUSHALL
+```
+
+**Reiniciar bases de datos limpiamente:**
+```bash
+docker-compose down -v  # Elimina volúmenes
+docker-compose up -d
+npm run seed           # Volver a sembrar
+```
+
+### Debugging
+
+**Backend (VS Code):**
+
+Crear `.vscode/launch.json`:
 ```json
 {
   "version": "0.2.0",
@@ -224,66 +609,14 @@ El servidor se recarga automáticamente al detectar cambios en archivos `.ts`.
       "type": "node",
       "request": "launch",
       "name": "Debug Backend",
-      "program": "${workspaceFolder}/backend/src/index.ts",
-      "runtimeArgs": ["--loader", "ts-node/esm"],
-      "skipFiles": ["<node_internals>/**"]
+      "skipFiles": ["<node_internals>/**"],
+      "program": "${workspaceFolder}/src/index.ts",
+      "preLaunchTask": null,
+      "outFiles": ["${workspaceFolder}/**/*.js"],
+      "runtimeArgs": ["--loader", "ts-node/esm"]
     }
   ]
 }
-```
-
-### Ver Logs de Docker
-```bash
-docker-compose logs -f
-docker-compose logs -f mongo_db
-docker-compose logs -f neo4j_db
-docker-compose logs -f redis_db
-```
-
-### Conectarse a Bases de Datos
-
-**MongoDB:**
-```bash
-docker exec -it mongo_db mongosh \
-  -u admin \
-  -p db2passwordsecure! \
-  --authenticationDatabase admin \
-  talentum_db
-```
-
-**Neo4j:**
-- Abrir http://localhost:7474
-- Login: `neo4j` / `db2passwordsecure!`
-
-**Redis:**
-```bash
-docker exec -it redis_db redis-cli
-# Commands: KEYS *, GET key, FLUSHALL
-```
-
----
-
-## 🧪 Testing y Debugging
-
-### Verificar Conexiones
-```bash
-npm run test-connection
-```
-
-### Verificar Datos
-```bash
-npm run check
-```
-
-### Diagnosticar Problemas
-```bash
-npm run diagnose
-```
-
-### Limpiar y Reseed
-```bash
-npm run clean
-npm run seed
 ```
 
 ---
@@ -291,39 +624,272 @@ npm run seed
 ## 🐛 Troubleshooting
 
 ### Problema: Contenedores no inician
+
+**Síntomas:**
+```
+Error: port already in use
+```
+
+**Solución:**
 ```bash
+# Ver qué está usando los puertos
+lsof -i :27017  # MongoDB
+lsof -i :7687   # Neo4j
+lsof -i :6379   # Redis
+
+# Matar proceso si es necesario
+kill -9 <PID>
+
+# O cambiar puertos en docker-compose.yml
+```
+
+### Problema: Error de conexión MongoDB
+
+**Síntomas:**
+```
+MongoServerError: Authentication failed
+```
+
+**Solución:**
+```bash
+# Eliminar volúmenes y recrear
 docker-compose down -v
 docker-compose up -d
+
+# Verificar variables de entorno
+cat .env
+
+# Asegurarse que coincidan con docker-compose.yml
 ```
 
-### Problema: Error de autenticación MongoDB
-Asegurarse que `.env` y `docker-compose.yml` tienen las mismas credenciales.
+### Problema: Neo4j no acepta conexiones
 
-### Problema: Neo4j no responde
-Esperar 30 segundos después de `docker-compose up` para que Neo4j termine de iniciar.
+**Síntomas:**
+```
+ServiceUnavailable: Could not connect to Neo4j
+```
+
+**Solución:**
+```bash
+# Esperar a que Neo4j esté listo (puede tardar 30s)
+docker-compose logs -f neo4j_db
+
+# Buscar mensaje: "Started."
+# Luego intentar seed o start nuevamente
+```
+
+### Problema: Seed falla
+
+**Síntomas:**
+```
+Error during seed: Connection timeout
+```
+
+**Solución:**
+```bash
+# 1. Verificar que todas las DBs estén corriendo
+docker-compose ps
+
+# 2. Probar conexiones
+npm run test-connection
+
+# 3. Limpiar y reintentar
+npm run clean
+npm run seed
+```
 
 ### Problema: Puerto 3000 en uso
-Cambiar `PORT` en `.env` o matar proceso:
+
+**Solución:**
 ```bash
-lsof -i :3000
-kill -9 <PID>
+# Cambiar puerto en .env
+PORT=3001
+
+# Reiniciar servicio
+npm start
 ```
 
 ---
 
-## 📚 Recursos
+## 📊 Monitoreo y Observabilidad
 
-- [MongoDB Docs](https://www.mongodb.com/docs/)
-- [Neo4j Cypher](https://neo4j.com/docs/cypher-manual/)
-- [Redis Commands](https://redis.io/commands/)
-- [Express.js Guide](https://expressjs.com/en/guide/routing.html)
-- [Mongoose Guide](https://mongoosejs.com/docs/guide.html)
+### Logs
+
+**Ver logs combinados:**
+```bash
+docker-compose logs -f
+```
+
+**Ver logs por servicio:**
+```bash
+docker-compose logs -f mongo_db
+docker-compose logs -f neo4j_db
+docker-compose logs -f redis_db
+```
+
+### Métricas de Bases de Datos
+
+**MongoDB Stats:**
+```bash
+docker exec -it mongo_db mongosh \
+  -u admin \
+  -p db2passwordsecure! \
+  --authenticationDatabase admin \
+  --eval "db.stats()"
+```
+
+**Neo4j Queries:**
+```cypher
+// Contar nodos
+MATCH (n) RETURN count(n);
+
+// Contar relaciones
+MATCH ()-[r]->() RETURN count(r);
+
+// Ver tipos de nodos
+MATCH (n) RETURN labels(n), count(*);
+```
+
+**Redis Info:**
+```bash
+docker exec -it redis_db redis-cli INFO
+docker exec -it redis_db redis-cli DBSIZE
+```
 
 ---
 
-## 🎯 Ejemplos de Queries
+## 🧪 Testing
 
-### MongoDB (mongosh)
+### Testing Manual
+
+**Health Check completo:**
+```bash
+# Backend
+curl http://localhost:3000/api/health
+
+# MongoDB
+docker exec mongo_db mongosh \
+  -u admin \
+  -p db2passwordsecure! \
+  --authenticationDatabase admin \
+  --eval "db.runCommand({ ping: 1 })"
+
+# Neo4j
+curl -u neo4j:db2passwordsecure! \
+  http://localhost:7474/db/neo4j/tx/commit
+
+# Redis
+docker exec redis_db redis-cli PING
+```
+
+**Test de datos:**
+```bash
+npm run check  # Verifica datos en todas las DBs
+```
+
+### Testing Automatizado (Futuro)
+
+Frameworks recomendados:
+- **Backend**: Jest, Supertest
+- **E2E**: Playwright
+
+---
+
+## 🚀 Deployment (Producción)
+
+### Consideraciones
+
+1. **Variables de Entorno**
+   - Usar secrets management (AWS Secrets Manager, Vault)
+   - Contraseñas fuertes y únicas
+   - URLs de producción
+
+2. **Bases de Datos**
+   - MongoDB Atlas (managed)
+   - Neo4j Aura (managed)
+   - Redis Cloud (managed)
+   - O auto-managed con backups automáticos
+
+3. **Backend**
+   - Dockerizar aplicación
+   - Usar PM2 o similar para process management
+   - Configurar rate limiting
+   - Agregar helmet para seguridad
+   - Logging estructurado
+
+4. **Monitoreo**
+   - Application Performance Monitoring (APM)
+   - Error tracking (Sentry)
+   - Logging centralizado (ELK, CloudWatch)
+
+---
+
+## 👥 Equipo y Contribuciones
+
+### Autores
+- Estudiantes de UADE - Bases de Datos II
+- Universidad Argentina de la Empresa (UADE)
+
+### Cómo Contribuir
+
+1. Fork el proyecto
+2. Crear feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit cambios (`git commit -m 'Add some AmazingFeature'`)
+4. Push al branch (`git push origin feature/AmazingFeature`)
+5. Abrir Pull Request
+
+### Convenciones de Código
+
+- **Backend**: ESLint + Prettier
+- **Commits**: Conventional Commits
+- **Branches**: feature/, fix/, docs/, refactor/
+
+---
+
+## 📚 Recursos Adicionales
+
+### Documentación Oficial
+
+- [Node.js Docs](https://nodejs.org/docs/)
+- [Express.js Docs](https://expressjs.com/)
+- [MongoDB Manual](https://www.mongodb.com/docs/manual/)
+- [Neo4j Documentation](https://neo4j.com/docs/)
+- [Redis Documentation](https://redis.io/docs/)
+- [TypeScript Handbook](https://www.typescriptlang.org/docs/)
+
+### Tutoriales Útiles
+
+- [Mongoose Guide](https://mongoosejs.com/docs/guide.html)
+- [Neo4j Cypher Basics](https://neo4j.com/docs/cypher-manual/current/introduction/)
+- [Redis Tutorial](https://redis.io/docs/manual/)
+
+### Queries Neo4j de Ejemplo
+
+```cypher
+// Encontrar candidatos para un trabajo
+MATCH (u:User)-[hs:HAS_SKILL]->(s:Skill)<-[rs:REQUIRES_SKILL]-(j:JobPosting {id: 'JOB_ID'})
+RETURN u.name, collect(s.name) as matching_skills, count(s) as skill_count
+ORDER BY skill_count DESC;
+
+// Recomendar cursos basados en skills de trabajo deseado
+MATCH (u:User {id: 'USER_ID'})-[:APPLIED_TO]->(j:JobPosting)-[:REQUIRES_SKILL]->(s:Skill)
+MATCH (c:Course)-[:TEACHES_SKILL]->(s)
+WHERE NOT (u)-[:ENROLLED_IN]->(c)
+RETURN DISTINCT c.name, collect(s.name) as skills_taught
+LIMIT 5;
+
+// Encontrar colegas de colegas (2do grado)
+MATCH (u:User {id: 'USER_ID'})-[:COLLEAGUE_OF*2]-(colleague)
+WHERE NOT (u)-[:COLLEAGUE_OF]-(colleague)
+RETURN DISTINCT colleague.name, colleague.email;
+
+// Red de mentorías
+MATCH path = (mentor:User)-[:MENTORS*]->(mentee:User)
+RETURN mentor.name, mentee.name, length(path) as degrees;
+```
+
+### Ejemplos de Queries MongoDB
+
 ```javascript
 // Contar usuarios
 db.users.countDocuments()
@@ -333,24 +899,16 @@ db.users.findOne({ email: "juan.perez@example.com" })
 
 // Trabajos por empresa
 db.jobpostings.find({ "company.name": "TechCorp Solutions" })
+
+// Usuarios con skill específica
+db.users.find({ "skills.name": "JavaScript" })
+
+// Cursos por dificultad
+db.courses.find({ difficulty: "Intermediate" })
 ```
 
-### Neo4j (Cypher)
-```cypher
-// Ver todos los usuarios
-MATCH (u:User) RETURN u LIMIT 10;
+### Comandos Redis
 
-// Skills más demandadas
-MATCH (j:JobPosting)-[:REQUIRES_SKILL]->(s:Skill)
-RETURN s.name, count(j) as demand
-ORDER BY demand DESC;
-
-// Colegas de un usuario
-MATCH (u:User {id: 'USER_ID'})-[:COLLEAGUE_OF]-(colleague)
-RETURN colleague;
-```
-
-### Redis (redis-cli)
 ```bash
 # Ver todas las keys
 KEYS *
@@ -361,29 +919,96 @@ GET user:USER_ID
 # Ver estadísticas
 GET stats:USER_ID
 
+# Ver TTL de una key
+TTL user:USER_ID
+
 # Limpiar todo
 FLUSHALL
 ```
 
 ---
 
-## 📦 Dependencias Principales
+## 📄 Licencia
 
-```json
-{
-  "express": "^5.1.0",        // Web framework
-  "mongoose": "^8.19.2",      // MongoDB ODM
-  "neo4j-driver": "^6.0.0",   // Neo4j driver
-  "redis": "^5.9.0",          // Redis client
-  "dotenv": "^17.2.3",        // Variables de entorno
-  "typescript": "^5.9.3",     // TypeScript
-  "ts-node": "^10.9.2",       // TypeScript execution
-  "nodemon": "^3.1.10"        // Hot reload
-}
-```
+Este proyecto es desarrollado con fines académicos para la materia Bases de Datos II de UADE.
 
 ---
 
-Para más información, consultar el [README principal del proyecto](../README.md).
+## 🎯 Roadmap Futuro
+
+### Features Planificadas
+
+- [ ] Autenticación y autorización (JWT)
+- [ ] WebSockets para notificaciones en tiempo real
+- [ ] Sistema de mensajería entre usuarios
+- [ ] Dashboard con gráficos y analytics
+- [ ] Búsqueda full-text con Elasticsearch
+- [ ] Sistema de calificaciones y reviews
+- [ ] API GraphQL alternativa
+- [ ] Tests unitarios y de integración
+- [ ] CI/CD pipeline
+- [ ] Documentación API con Swagger/OpenAPI
+
+### Mejoras Técnicas
+
+- [ ] Rate limiting y throttling
+- [ ] Compresión de respuestas (gzip)
+- [ ] Paginación en todos los endpoints
+- [ ] Filtros y ordenamiento avanzado
+- [ ] Validación exhaustiva de inputs (Joi/Zod)
+- [ ] Manejo de errores centralizado
+- [ ] Logging estructurado (Winston/Pino)
+- [ ] Health checks detallados
+- [ ] Graceful shutdown
+- [ ] Database migrations
+
+---
+
+## ❓ FAQ
+
+**Q: ¿Puedo usar solo una base de datos?**  
+A: El proyecto está diseñado para demostrar arquitectura polyglot. Técnicamente podrías usar solo una, pero perderías las ventajas específicas de cada DB.
+
+**Q: ¿Cómo reseteo todo?**  
+A: 
+```bash
+docker-compose down -v
+docker-compose up -d
+npm run seed
+```
+
+**Q: ¿Funciona en Windows?**  
+A: Sí, pero asegúrate de usar PowerShell o WSL2 para Docker. Los comandos pueden variar ligeramente.
+
+**Q: ¿Puedo cambiar las contraseñas?**  
+A: Sí, pero debes cambiarlas en:
+1. `docker-compose.yml`
+2. `.env`
+Y luego recrear los contenedores con `docker-compose down -v && docker-compose up -d`
+
+**Q: ¿Cómo agrego más datos?**  
+A: Edita `src/utils/seed.ts` y ejecuta `npm run seed` nuevamente.
+
+**Q: El seed tarda mucho, ¿es normal?**  
+A: Primera vez puede tardar 30-60 segundos. Subsecuentes veces 10-20 segundos. Si tarda más, verifica las conexiones.
+
+---
+
+## 📞 Soporte
+
+Para problemas o preguntas:
+
+1. Revisar esta documentación
+2. Revisar la sección Troubleshooting
+3. Buscar en los logs: `docker-compose logs -f`
+4. Ejecutar diagnóstico: `npm run diagnose`
+5. Crear un issue en el repositorio
+
+---
+
+**Desarrollado con ❤️ para UADE - Bases de Datos II**
+
+**Fecha:** Noviembre 2024  
+**Versión:** 1.0.0
 
 **Stack:** Node.js + TypeScript + Express + MongoDB + Neo4j + Redis
