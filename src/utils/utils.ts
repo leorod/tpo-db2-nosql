@@ -51,7 +51,7 @@ export const getMatchScoreLabel = (score: number): string => {
 export const calculateYearsOfExperience = (startDate: Date, endDate?: Date): number => {
   const end = endDate || new Date();
   const years = (end.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24 * 365);
-  return Math.round(years * 10) / 10; // Round to 1 decimal
+  return Math.round(years * 10) / 10; 
 };
 
 export const groupBy = <T>(array: T[], key: keyof T): Record<string, T[]> => {

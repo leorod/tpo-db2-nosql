@@ -26,31 +26,25 @@ const initializeApp = async () => {
   try {
     console.log('🚀 Starting Talentum+ Platform...\n');
 
-    console.log('📊 Connecting to databases...');
     await connectMongoDB();
     const neo4jDriver = connectNeo4j();
     const redisClient = await connectRedis();
     console.log('✅ All databases connected!\n');
 
-    console.log('🔧 Initializing services...');
     const mongoService = new MongoDBService();
     const neo4jService = new Neo4jService(neo4jDriver);
     const redisService = new RedisService(redisClient);
-    console.log('✅ Services initialized!\n');
 
     const controller = new TalentumController(mongoService, neo4jService, redisService);
 
     const routes = createRoutes(controller);
     app.use('/api', routes);
 
-    console.log('🛣️  Routes configured!\n');
-
     app.listen(port, () => {
       console.log(`Server running on: http://localhost:${port}`);
     });
 
     process.on('SIGINT', async () => {
-      console.log('\n⚠️  Shutting down gracefully...');
       await neo4jService.close();
       await redisService.close();
       process.exit(0);

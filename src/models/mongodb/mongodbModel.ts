@@ -1,6 +1,5 @@
 import mongoose, { Schema, Document } from 'mongoose';
 
-// User (Candidatos/Empleados)
 export interface IUser extends Document {
   name: string;
   email: string;
@@ -62,7 +61,6 @@ const userSchema = new Schema<IUser>({
 export const User = mongoose.model<IUser>('User', userSchema);
 
 
-// Company (Empresas)
 export interface ICompany extends Document {
   name: string;
   industry: string;
@@ -88,7 +86,6 @@ const companySchema = new Schema<ICompany>({
 export const Company = mongoose.model<ICompany>('Company', companySchema);
 
 
-// JobPosting (Ofertas Laborales)
 export interface IJobPosting extends Document {
   title: string;
   companyId: mongoose.Types.ObjectId;
@@ -128,7 +125,6 @@ const jobPostingSchema = new Schema<IJobPosting>({
 export const JobPosting = mongoose.model<IJobPosting>('JobPosting', jobPostingSchema);
 
 
-// Application (Postulaciones)
 export interface IApplication extends Document {
   userId: mongoose.Types.ObjectId;
   jobPostingId: mongoose.Types.ObjectId;
@@ -141,7 +137,7 @@ export interface IApplication extends Document {
     confidentialNotes?: string;
     score?: number;
   }>;
-  matchScore?: number; // Score de matching automático
+  matchScore?: number; 
   rejectionReason?: string;
   createdAt: Date;
   updatedAt: Date;
@@ -170,20 +166,19 @@ const applicationSchema = new Schema<IApplication>({
 export const Application = mongoose.model<IApplication>('Application', applicationSchema);
 
 
-// Course (Cursos)
 export interface ICourse extends Document {
   title: string;
   description: string;
   category: string;
   difficulty: 'Beginner' | 'Intermediate' | 'Advanced';
-  duration: number; // en horas
+  duration: number; 
   url?: string;
   materials: Array<{
     type: 'Video' | 'PDF' | 'Document' | 'Link';
     title: string;
     url: string;
   }>;
-  skills: string[]; // Skills que enseña el curso
+  skills: string[]; 
   createdAt: Date;
   updatedAt: Date;
 }
@@ -206,7 +201,6 @@ const courseSchema = new Schema<ICourse>({
 export const Course = mongoose.model<ICourse>('Course', courseSchema);
 
 
-// LearningPath (Progreso en cursos)
 export interface ILearningPath extends Document {
   userId: mongoose.Types.ObjectId;
   courseId: mongoose.Types.ObjectId;
@@ -234,7 +228,6 @@ const learningPathSchema = new Schema<ILearningPath>({
 export const LearningPath = mongoose.model<ILearningPath>('LearningPath', learningPathSchema);
 
 
-// Certification (Certificaciones)
 export interface ICertification extends Document {
   userId: mongoose.Types.ObjectId;
   name: string;
@@ -243,7 +236,7 @@ export interface ICertification extends Document {
   expiryDate?: Date;
   credentialId?: string;
   credentialUrl?: string;
-  skills: string[]; // Skills que certifica
+  skills: string[]; 
   createdAt: Date;
   updatedAt: Date;
 }
