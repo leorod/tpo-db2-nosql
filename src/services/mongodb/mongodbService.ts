@@ -1,4 +1,4 @@
-import { User, Company, JobPosting, Application, Course, LearningPath } from '../../models/mongodb/mongodbModel.js';
+import { User, Company, JobPosting, Application, Course, LearningPath, Certification } from '../../models/mongodb/mongodbModel.js';
 import mongoose from 'mongoose';
 
 export class MongoDBService {  
@@ -327,5 +327,173 @@ export class MongoDBService {
       completedCourses: learningPaths.filter(lp => lp.status === 'Completed').length,
       inProgressCourses: learningPaths.filter(lp => lp.status === 'In Progress').length
     };
+  }
+
+  // ============= INTERVIEW METHODS =============
+  
+  async addInterviewToApplication(applicationId: string, interviewData: {
+    type: 'HR' | 'Technical' | 'Cultural' | 'Final';
+    date: Date;
+    feedback?: string;
+    confidentialNotes?: string;
+    score?: number;
+  }) {
+    const application = await Application.findById(applicationId);
+    if (!application) {
+      throw new Error('Application not found');
+    }
+
+    application.interviews.push(interviewData);
+    await application.save();
+    return application;
+  }
+
+  async getApplicationInterviews(applicationId: string) {
+    const application = await Application.findById(applicationId)
+      .populate('userId', 'name email')
+      .populate('jobPostingId', 'title');
+    
+    if (!application) {
+      throw new Error('Application not found');
+    }
+
+    return {
+      application: {
+        id: application._id,
+        user: application.userId,
+        job: application.jobPostingId,
+        status: application.status
+      },
+      interviews: application.interviews
+    };
+  }
+
+  async updateInterviewFeedback(applicationId: string, interviewIndex: number, updates: {
+    feedback?: string;
+    confidentialNotes?: string;
+    score?: number;
+  }) {
+    const application = await Application.findById(applicationId);
+    if (!application) {
+      throw new Error('Application not found');
+    }
+
+    if (interviewIndex < 0 || interviewIndex >= application.interviews.length) {
+      throw new Error('Interview not found');
+    }
+
+    if (updates.feedback !== undefined) {
+      application.interviews[interviewIndex].feedback = updates.feedback;
+    }
+    if (updates.confidentialNotes !== undefined) {
+      application.interviews[interviewIndex].confidentialNotes = updates.confidentialNotes;
+    }
+    if (updates.score !== undefined) {
+      application.interviews[interviewIndex].score = updates.score;
+    }
+
+    await application.save();
+    return application;
+  }
+  
+  async updateCourseScore(userId: string, courseId: string, score: number) {
+    if (score < 0 || score > 100) {
+      throw new Error('Score must be between 0 and 100');
+    }
+
+    const learningPath = await LearningPath.findOneAndUpdate(
+      { userId: new mongoose.Types.ObjectId(userId), courseId: new mongoose.Types.ObjectId(courseId) },
+      { 
+        $set: { 
+          score,
+          lastAccessedAt: new Date()
+        }
+      },
+      { new: true }
+    ).populate('courseId', 'title category');
+
+    if (!learningPath) {
+      throw new Error('Learning path not found');
+    }
+
+    return learningPath;
+  }
+
+  async getUserCourseScores(userId: string) {
+    const learningPaths = await LearningPath.find({ 
+      userId: new mongoose.Types.ObjectId(userId),
+      score: { $exists: true, $ne: null }
+    })
+    .populate('courseId', 'title category difficulty')
+    .sort({ completedAt: -1 });
+
+    return learningPaths.map(lp => ({
+      course: lp.courseId,
+      score: lp.score,
+      status: lp.status,
+      completedAt: lp.completedAt,
+      progressPercentage: lp.progressPercentage
+    }));
+  }
+  
+  async createCertification(certificationData: any) {
+    const certification = new Certification({
+      ...certificationData,
+      userId: new mongoose.Types.ObjectId(certificationData.userId)
+    });
+    await certification.save();
+    return certification;
+  }
+
+  async getUserCertifications(userId: string) {
+    const certifications = await Certification.find({ 
+      userId: new mongoose.Types.ObjectId(userId) 
+    }).sort({ issuedDate: -1 });
+    
+    return certifications;
+  }
+
+  async getCertificationById(certificationId: string) {
+    const certification = await Certification.findById(certificationId)
+      .populate('userId', 'name email');
+    return certification;
+  }
+
+  async updateCertification(certificationId: string, updateData: any) {
+    const certification = await Certification.findByIdAndUpdate(
+      certificationId,
+      { $set: updateData },
+      { new: true, runValidators: true }
+    );
+    return certification;
+  }
+
+  async deleteCertification(certificationId: string) {
+    const certification = await Certification.findByIdAndDelete(certificationId);
+    return certification;
+  }
+
+  async getActiveCertifications(userId: string) {
+    const now = new Date();
+    const certifications = await Certification.find({
+      userId: new mongoose.Types.ObjectId(userId),
+      $or: [
+        { expiryDate: { $exists: false } },
+        { expiryDate: null },
+        { expiryDate: { $gt: now } }
+      ]
+    }).sort({ issuedDate: -1 });
+    
+    return certifications;
+  }
+
+  async getCertificationsBySkill(skill: string) {
+    const certifications = await Certification.find({
+      skills: skill
+    })
+    .populate('userId', 'name email location')
+    .sort({ issuedDate: -1 });
+    
+    return certifications;
   }
 }

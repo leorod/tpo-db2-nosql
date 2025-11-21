@@ -42,5 +42,20 @@ export const createRoutes = (controller: TalentumController): Router => {
   router.get('/analytics/user/:userId/history', controller.getApplicationHistory);
   router.get('/analytics/user/:userId/activity', controller.getRecentActivity);
 
+  router.post('/applications/:applicationId/interviews', controller.addInterview);
+  router.get('/applications/:applicationId/interviews', controller.getInterviews);
+  router.put('/applications/:applicationId/interviews/:interviewIndex', controller.updateInterview);
+
+  router.put('/courses/:userId/:courseId/score', controller.updateCourseScore);
+  router.get('/courses/:userId/scores', controller.getUserCourseScores);
+
+  router.post('/certifications', controller.createCertification);
+  router.get('/certifications/user/:userId', controller.getUserCertifications);
+  router.get('/certifications/user/:userId/active', controller.getActiveCertifications);
+  router.get('/certifications/:certificationId', controller.getCertificationById);
+  router.put('/certifications/:certificationId', controller.updateCertification);
+  router.delete('/certifications/:certificationId', controller.deleteCertification);
+  router.get('/certifications/skill/:skill', controller.getCertificationsBySkill);
+
   return router;
 };

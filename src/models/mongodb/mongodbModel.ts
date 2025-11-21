@@ -232,3 +232,31 @@ const learningPathSchema = new Schema<ILearningPath>({
 }, { timestamps: true });
 
 export const LearningPath = mongoose.model<ILearningPath>('LearningPath', learningPathSchema);
+
+
+// Certification (Certificaciones)
+export interface ICertification extends Document {
+  userId: mongoose.Types.ObjectId;
+  name: string;
+  issuedBy: string;
+  issuedDate: Date;
+  expiryDate?: Date;
+  credentialId?: string;
+  credentialUrl?: string;
+  skills: string[]; // Skills que certifica
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+const certificationSchema = new Schema<ICertification>({
+  userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+  name: { type: String, required: true },
+  issuedBy: { type: String, required: true },
+  issuedDate: { type: Date, required: true },
+  expiryDate: { type: Date },
+  credentialId: { type: String },
+  credentialUrl: { type: String },
+  skills: [{ type: String }]
+}, { timestamps: true });
+
+export const Certification = mongoose.model<ICertification>('Certification', certificationSchema);
