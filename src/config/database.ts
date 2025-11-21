@@ -70,7 +70,6 @@ export class Neo4jTrackedDriver {
   }
 }
 
-// Neo4j Connection
 export const connectNeo4j = () => {
   const neo4jURI = process.env.NEO4J_URI || 'bolt://localhost:7687';
   const neo4jUser = process.env.NEO4J_USER || 'neo4j';
@@ -85,7 +84,6 @@ export const connectNeo4j = () => {
   return new Neo4jTrackedDriver(driver);
 };
 
-// Redis Connection
 export const connectRedis = async () => {
   const redisURI = process.env.REDIS_URI || 'redis://localhost:6379';
   
