@@ -152,7 +152,6 @@ const seedDatabase = async () => {
           }
         ]
       }),
-      // Nuevo usuario que trabaja en TechCorp (colega de Juan)
       mongoService.createUser({
         name: 'Laura Martínez',
         email: 'laura.martinez@example.com',
@@ -183,7 +182,6 @@ const seedDatabase = async () => {
           }
         ]
       }),
-      // Nuevo usuario que también trabaja en DataScience Labs
       mongoService.createUser({
         name: 'Pedro Sánchez',
         email: 'pedro.sanchez@example.com',
@@ -214,7 +212,6 @@ const seedDatabase = async () => {
           }
         ]
       }),
-      // Nuevo usuario junior buscando trabajo
       mongoService.createUser({
         name: 'Ana López',
         email: 'ana.lopez@example.com',
@@ -397,7 +394,6 @@ const seedDatabase = async () => {
 
     console.log('📝 Creando aplicaciones a trabajos...');
     
-    // Juan aplica al trabajo de Full-Stack (match perfecto)
     const matchScore1 = await mongoService.calculateMatchScore(
       users[0].id.toString(),
       jobs[0].id.toString()
@@ -415,7 +411,6 @@ const seedDatabase = async () => {
       matchScore1
     );
 
-    // María aplica al trabajo de Data Scientist (match perfecto)
     const matchScore2 = await mongoService.calculateMatchScore(
       users[1].id.toString(),
       jobs[1].id.toString()
@@ -433,7 +428,6 @@ const seedDatabase = async () => {
       matchScore2
     );
 
-    // Carlos aplica al trabajo de Java Backend (match perfecto)
     const matchScore3 = await mongoService.calculateMatchScore(
       users[2].id.toString(),
       jobs[2].id.toString()
@@ -451,7 +445,6 @@ const seedDatabase = async () => {
       matchScore3
     );
 
-    // Ana (junior) aplica a varios trabajos
     const matchScore4 = await mongoService.calculateMatchScore(
       users[5].id.toString(),
       jobs[0].id.toString()
@@ -471,43 +464,37 @@ const seedDatabase = async () => {
 
     console.log('🤝 Creando red social (recomendaciones y mentorías)...');
     
-    // Recomendaciones mutuas entre colegas de TechCorp
     await neo4jService.createRecommendationRelationship(
-      users[0].id.toString(), // Juan
-      users[3].id.toString()  // Laura
+      users[0].id.toString(), 
+      users[3].id.toString() 
     );
     await neo4jService.createRecommendationRelationship(
-      users[3].id.toString(), // Laura
-      users[0].id.toString()  // Juan
-    );
-
-    // Recomendaciones entre colegas de DataScience Labs
-    await neo4jService.createRecommendationRelationship(
-      users[1].id.toString(), // María
-      users[4].id.toString()  // Pedro
+      users[3].id.toString(),
+      users[0].id.toString() 
     );
 
-    // Carlos recomienda a Juan
     await neo4jService.createRecommendationRelationship(
-      users[2].id.toString(), // Carlos
-      users[0].id.toString()  // Juan
+      users[1].id.toString(), 
+      users[4].id.toString() 
     );
 
-    // Juan mentora a Ana (junior)
+    await neo4jService.createRecommendationRelationship(
+      users[2].id.toString(), 
+      users[0].id.toString()  
+    );
+
     await neo4jService.createMentorRelationship(
-      users[0].id.toString(), // Juan (mentor)
-      users[5].id.toString()  // Ana (mentee)
+      users[0].id.toString(), 
+      users[5].id.toString()  
     );
 
-    // María mentora a Pedro
     await neo4jService.createMentorRelationship(
-      users[1].id.toString(), // María (mentor)
-      users[4].id.toString()  // Pedro (mentee)
+      users[1].id.toString(), 
+      users[4].id.toString()  
     );
 
     console.log('📚 Inscribiendo usuarios en cursos...');
     
-    // Juan completa el curso de React
     await mongoService.enrollUserInCourse(users[0].id.toString(), courses[0].id.toString());
     await neo4jService.createCourseRelationship(
       users[0].id.toString(),
@@ -521,7 +508,6 @@ const seedDatabase = async () => {
       { progressPercentage: 100, status: 'Completed' }
     );
 
-    // Laura también completa el curso de React
     await mongoService.enrollUserInCourse(users[3].id.toString(), courses[0].id.toString());
     await neo4jService.createCourseRelationship(
       users[3].id.toString(),
@@ -535,7 +521,6 @@ const seedDatabase = async () => {
       { progressPercentage: 100, status: 'Completed' }
     );
 
-    // María completa el curso de ML
     await mongoService.enrollUserInCourse(users[1].id.toString(), courses[1].id.toString());
     await neo4jService.createCourseRelationship(
       users[1].id.toString(),
@@ -544,7 +529,6 @@ const seedDatabase = async () => {
       100
     );
 
-    // Ana se inscribe en el curso de React (en progreso)
     await mongoService.enrollUserInCourse(users[5].id.toString(), courses[0].id.toString());
     await neo4jService.createCourseRelationship(
       users[5].id.toString(),

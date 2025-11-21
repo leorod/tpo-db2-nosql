@@ -1,0 +1,889 @@
+{
+	"info": {
+		"_postman_id": "talentum-plus-api-2024",
+		"name": "Talentum+ API Collection",
+		"description": "Colección completa de endpoints para la plataforma Talentum+. Sistema de gestión de talento que integra MongoDB, Neo4j y Redis.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:3000/api",
+			"type": "string"
+		}
+	],
+	"item": [
+		{
+			"name": "Health Check",
+			"item": [
+				{
+					"name": "Health Check",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/health",
+							"host": ["{{baseUrl}}"],
+							"path": ["health"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Users",
+			"item": [
+				{
+					"name": "Create User",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Juan Pérez\",\n  \"email\": \"juan.perez@example.com\",\n  \"location\": \"Buenos Aires, Argentina\",\n  \"bio\": \"Desarrollador Full Stack con 5 años de experiencia\",\n  \"skills\": [\n    {\n      \"name\": \"JavaScript\",\n      \"level\": \"Advanced\",\n      \"yearsOfExperience\": 5\n    },\n    {\n      \"name\": \"React\",\n      \"level\": \"Advanced\",\n      \"yearsOfExperience\": 4\n    },\n    {\n      \"name\": \"Node.js\",\n      \"level\": \"Intermediate\",\n      \"yearsOfExperience\": 3\n    }\n  ],\n  \"experience\": [\n    {\n      \"company\": \"Tech Corp\",\n      \"role\": \"Senior Developer\",\n      \"startDate\": \"2020-01-01\",\n      \"endDate\": null,\n      \"description\": \"Desarrollo de aplicaciones web\"\n    }\n  ],\n  \"education\": [\n    {\n      \"institution\": \"Universidad de Buenos Aires\",\n      \"degree\": \"Ingeniería en Sistemas\",\n      \"field\": \"Computer Science\",\n      \"graduationYear\": 2019\n    }\n  ]\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/users",
+							"host": ["{{baseUrl}}"],
+							"path": ["users"]
+						}
+					}
+				},
+				{
+					"name": "Get All Users",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/users",
+							"host": ["{{baseUrl}}"],
+							"path": ["users"]
+						}
+					}
+				},
+				{
+					"name": "Get User By ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/users/:userId",
+							"host": ["{{baseUrl}}"],
+							"path": ["users", ":userId"],
+							"variable": [
+								{
+									"key": "userId",
+									"value": "REPLACE_WITH_USER_ID"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Update User",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"bio\": \"Desarrollador Full Stack Senior con más de 5 años de experiencia\",\n  \"location\": \"Buenos Aires, Argentina\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/users/:userId",
+							"host": ["{{baseUrl}}"],
+							"path": ["users", ":userId"],
+							"variable": [
+								{
+									"key": "userId",
+									"value": "REPLACE_WITH_USER_ID"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get User Stats",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/users/:userId/stats",
+							"host": ["{{baseUrl}}"],
+							"path": ["users", ":userId", "stats"],
+							"variable": [
+								{
+									"key": "userId",
+									"value": "REPLACE_WITH_USER_ID"
+								}
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Companies",
+			"item": [
+				{
+					"name": "Create Company",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Tech Solutions SA\",\n  \"industry\": \"Technology\",\n  \"location\": \"Buenos Aires, Argentina\",\n  \"description\": \"Empresa líder en soluciones tecnológicas\",\n  \"website\": \"https://techsolutions.com\",\n  \"size\": \"50-200\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/companies",
+							"host": ["{{baseUrl}}"],
+							"path": ["companies"]
+						}
+					}
+				},
+				{
+					"name": "Get All Companies",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/companies",
+							"host": ["{{baseUrl}}"],
+							"path": ["companies"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Job Postings",
+			"item": [
+				{
+					"name": "Create Job Posting",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"companyId\": \"REPLACE_WITH_COMPANY_ID\",\n  \"title\": \"Senior Full Stack Developer\",\n  \"description\": \"Buscamos desarrollador Full Stack con experiencia en React y Node.js. Beneficios: trabajo remoto, seguro médico, presupuesto para capacitaciones.\",\n  \"location\": \"Buenos Aires, Argentina\",\n  \"type\": \"Full-time\",\n  \"level\": \"Senior\",\n  \"requirements\": [\"Experiencia mínima 5 años\", \"Inglés avanzado\", \"Disponibilidad remota\"],\n  \"salaryRange\": {\n    \"min\": 80000,\n    \"max\": 120000,\n    \"currency\": \"USD\"\n  },\n  \"requiredSkills\": [\"JavaScript\", \"React\", \"Node.js\", \"MongoDB\"],\n  \"isActive\": true\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/jobs",
+							"host": ["{{baseUrl}}"],
+							"path": ["jobs"]
+						}
+					}
+				},
+				{
+					"name": "Get Active Job Postings",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/jobs",
+							"host": ["{{baseUrl}}"],
+							"path": ["jobs"]
+						}
+					}
+				},
+				{
+					"name": "Get Job Posting By ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/jobs/:jobId",
+							"host": ["{{baseUrl}}"],
+							"path": ["jobs", ":jobId"],
+							"variable": [
+								{
+									"key": "jobId",
+									"value": "REPLACE_WITH_JOB_ID"
+								}
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Applications",
+			"item": [
+				{
+					"name": "Apply to Job",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"userId\": \"REPLACE_WITH_USER_ID\",\n  \"jobPostingId\": \"REPLACE_WITH_JOB_ID\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/applications",
+							"host": ["{{baseUrl}}"],
+							"path": ["applications"]
+						}
+					}
+				},
+				{
+					"name": "Get User Applications",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/applications/user/:userId",
+							"host": ["{{baseUrl}}"],
+							"path": ["applications", "user", ":userId"],
+							"variable": [
+								{
+									"key": "userId",
+									"value": "REPLACE_WITH_USER_ID"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Job Applications",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/applications/job/:jobId",
+							"host": ["{{baseUrl}}"],
+							"path": ["applications", "job", ":jobId"],
+							"variable": [
+								{
+									"key": "jobId",
+									"value": "REPLACE_WITH_JOB_ID"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Update Application Status",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"status\": \"Interview\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/applications/:applicationId/status",
+							"host": ["{{baseUrl}}"],
+							"path": ["applications", ":applicationId", "status"],
+							"variable": [
+								{
+									"key": "applicationId",
+									"value": "REPLACE_WITH_APPLICATION_ID"
+								}
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Matching & Recommendations",
+			"item": [
+				{
+					"name": "Get Matching Candidates for Job",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/matching/job/:jobId/candidates?limit=10",
+							"host": ["{{baseUrl}}"],
+							"path": ["matching", "job", ":jobId", "candidates"],
+							"query": [
+								{
+									"key": "limit",
+									"value": "10"
+								}
+							],
+							"variable": [
+								{
+									"key": "jobId",
+									"value": "REPLACE_WITH_JOB_ID"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Recommended Jobs for User",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/recommendations/user/:userId/jobs?limit=10",
+							"host": ["{{baseUrl}}"],
+							"path": ["recommendations", "user", ":userId", "jobs"],
+							"query": [
+								{
+									"key": "limit",
+									"value": "10"
+								}
+							],
+							"variable": [
+								{
+									"key": "userId",
+									"value": "REPLACE_WITH_USER_ID"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Recommended Courses for User",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/recommendations/user/:userId/courses?limit=5",
+							"host": ["{{baseUrl}}"],
+							"path": ["recommendations", "user", ":userId", "courses"],
+							"query": [
+								{
+									"key": "limit",
+									"value": "5"
+								}
+							],
+							"variable": [
+								{
+									"key": "userId",
+									"value": "REPLACE_WITH_USER_ID"
+								}
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Courses",
+			"item": [
+				{
+					"name": "Create Course",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"title\": \"Advanced React Patterns\",\n  \"description\": \"Aprende patrones avanzados de React incluyendo hooks, context, y performance optimization. Proveedor: Tech Academy. Precio: $99.99\",\n  \"category\": \"Web Development\",\n  \"difficulty\": \"Advanced\",\n  \"duration\": 40,\n  \"url\": \"https://techacademy.com/courses/react-patterns\",\n  \"materials\": [\n    {\n      \"type\": \"Video\",\n      \"title\": \"Introducción a React Patterns\",\n      \"url\": \"https://techacademy.com/videos/react-intro\"\n    },\n    {\n      \"type\": \"PDF\",\n      \"title\": \"Guía de Referencia React\",\n      \"url\": \"https://techacademy.com/pdfs/react-guide.pdf\"\n    }\n  ],\n  \"skills\": [\"React\", \"JavaScript\", \"TypeScript\"]\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/courses",
+							"host": ["{{baseUrl}}"],
+							"path": ["courses"]
+						}
+					}
+				},
+				{
+					"name": "Get All Courses",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/courses",
+							"host": ["{{baseUrl}}"],
+							"path": ["courses"]
+						}
+					}
+				},
+				{
+					"name": "Enroll in Course",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"userId\": \"REPLACE_WITH_USER_ID\",\n  \"courseId\": \"REPLACE_WITH_COURSE_ID\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/courses/enroll",
+							"host": ["{{baseUrl}}"],
+							"path": ["courses", "enroll"]
+						}
+					}
+				},
+				{
+					"name": "Update Course Progress",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"progressPercentage\": 75,\n  \"status\": \"In Progress\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/courses/:userId/:courseId/progress",
+							"host": ["{{baseUrl}}"],
+							"path": ["courses", ":userId", ":courseId", "progress"],
+							"variable": [
+								{
+									"key": "userId",
+									"value": "REPLACE_WITH_USER_ID"
+								},
+								{
+									"key": "courseId",
+									"value": "REPLACE_WITH_COURSE_ID"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get User Courses",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/courses/user/:userId",
+							"host": ["{{baseUrl}}"],
+							"path": ["courses", "user", ":userId"],
+							"variable": [
+								{
+									"key": "userId",
+									"value": "REPLACE_WITH_USER_ID"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Update Course Score",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"score\": 95\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/courses/:userId/:courseId/score",
+							"host": ["{{baseUrl}}"],
+							"path": ["courses", ":userId", ":courseId", "score"],
+							"variable": [
+								{
+									"key": "userId",
+									"value": "REPLACE_WITH_USER_ID"
+								},
+								{
+									"key": "courseId",
+									"value": "REPLACE_WITH_COURSE_ID"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get User Course Scores",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/courses/:userId/scores",
+							"host": ["{{baseUrl}}"],
+							"path": ["courses", ":userId", "scores"],
+							"variable": [
+								{
+									"key": "userId",
+									"value": "REPLACE_WITH_USER_ID"
+								}
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Network",
+			"item": [
+				{
+					"name": "Get Colleagues",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/network/:userId/colleagues",
+							"host": ["{{baseUrl}}"],
+							"path": ["network", ":userId", "colleagues"],
+							"variable": [
+								{
+									"key": "userId",
+									"value": "REPLACE_WITH_USER_ID"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Add Recommendation",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"fromUserId\": \"REPLACE_WITH_FROM_USER_ID\",\n  \"toUserId\": \"REPLACE_WITH_TO_USER_ID\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/network/recommend",
+							"host": ["{{baseUrl}}"],
+							"path": ["network", "recommend"]
+						}
+					}
+				},
+				{
+					"name": "Create Mentorship",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"mentorId\": \"REPLACE_WITH_MENTOR_ID\",\n  \"menteeId\": \"REPLACE_WITH_MENTEE_ID\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/network/mentorship",
+							"host": ["{{baseUrl}}"],
+							"path": ["network", "mentorship"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Analytics",
+			"item": [
+				{
+					"name": "Get Application History",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/analytics/user/:userId/history",
+							"host": ["{{baseUrl}}"],
+							"path": ["analytics", "user", ":userId", "history"],
+							"variable": [
+								{
+									"key": "userId",
+									"value": "REPLACE_WITH_USER_ID"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Recent Activity",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/analytics/user/:userId/activity?count=20",
+							"host": ["{{baseUrl}}"],
+							"path": ["analytics", "user", ":userId", "activity"],
+							"query": [
+								{
+									"key": "count",
+									"value": "20"
+								}
+							],
+							"variable": [
+								{
+									"key": "userId",
+									"value": "REPLACE_WITH_USER_ID"
+								}
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Interviews",
+			"item": [
+				{
+					"name": "Add Interview",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+					"body": {
+						"mode": "raw",
+						"raw": "{\n  \"type\": \"Technical\",\n  \"date\": \"2024-12-15T10:00:00Z\",\n  \"feedback\": \"Pendiente\",\n  \"confidentialNotes\": \"Verificar experiencia en React y Node.js\",\n  \"score\": 0\n}"
+					},
+						"url": {
+							"raw": "{{baseUrl}}/applications/:applicationId/interviews",
+							"host": ["{{baseUrl}}"],
+							"path": ["applications", ":applicationId", "interviews"],
+							"variable": [
+								{
+									"key": "applicationId",
+									"value": "REPLACE_WITH_APPLICATION_ID"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Interviews",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/applications/:applicationId/interviews",
+							"host": ["{{baseUrl}}"],
+							"path": ["applications", ":applicationId", "interviews"],
+							"variable": [
+								{
+									"key": "applicationId",
+									"value": "REPLACE_WITH_APPLICATION_ID"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Update Interview",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"status\": \"Completed\",\n  \"feedback\": \"Excelente desempeño técnico\",\n  \"rating\": 9\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/applications/:applicationId/interviews/:interviewIndex",
+							"host": ["{{baseUrl}}"],
+							"path": ["applications", ":applicationId", "interviews", ":interviewIndex"],
+							"variable": [
+								{
+									"key": "applicationId",
+									"value": "REPLACE_WITH_APPLICATION_ID"
+								},
+								{
+									"key": "interviewIndex",
+									"value": "0"
+								}
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Certifications",
+			"item": [
+				{
+					"name": "Create Certification",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"userId\": \"REPLACE_WITH_USER_ID\",\n  \"name\": \"AWS Certified Solutions Architect\",\n  \"issuedBy\": \"Amazon Web Services\",\n  \"issuedDate\": \"2024-01-15\",\n  \"expirationDate\": \"2027-01-15\",\n  \"credentialId\": \"AWS-CSA-2024-12345\",\n  \"credentialUrl\": \"https://aws.amazon.com/verification/12345\",\n  \"skills\": [\"AWS\", \"Cloud Computing\", \"Architecture\"]\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/certifications",
+							"host": ["{{baseUrl}}"],
+							"path": ["certifications"]
+						}
+					}
+				},
+				{
+					"name": "Get User Certifications",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/certifications/user/:userId",
+							"host": ["{{baseUrl}}"],
+							"path": ["certifications", "user", ":userId"],
+							"variable": [
+								{
+									"key": "userId",
+									"value": "REPLACE_WITH_USER_ID"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Active Certifications",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/certifications/user/:userId/active",
+							"host": ["{{baseUrl}}"],
+							"path": ["certifications", "user", ":userId", "active"],
+							"variable": [
+								{
+									"key": "userId",
+									"value": "REPLACE_WITH_USER_ID"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Certification By ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/certifications/:certificationId",
+							"host": ["{{baseUrl}}"],
+							"path": ["certifications", ":certificationId"],
+							"variable": [
+								{
+									"key": "certificationId",
+									"value": "REPLACE_WITH_CERTIFICATION_ID"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Update Certification",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"expirationDate\": \"2028-01-15\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/certifications/:certificationId",
+							"host": ["{{baseUrl}}"],
+							"path": ["certifications", ":certificationId"],
+							"variable": [
+								{
+									"key": "certificationId",
+									"value": "REPLACE_WITH_CERTIFICATION_ID"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Delete Certification",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/certifications/:certificationId",
+							"host": ["{{baseUrl}}"],
+							"path": ["certifications", ":certificationId"],
+							"variable": [
+								{
+									"key": "certificationId",
+									"value": "REPLACE_WITH_CERTIFICATION_ID"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Certifications By Skill",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/certifications/skill/:skill",
+							"host": ["{{baseUrl}}"],
+							"path": ["certifications", "skill", ":skill"],
+							"variable": [
+								{
+									"key": "skill",
+									"value": "AWS"
+								}
+							]
+						}
+					}
+				}
+			]
+		}
+	]
+}
+

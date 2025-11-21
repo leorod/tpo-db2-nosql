@@ -270,7 +270,7 @@ export class RedisService {
     const key = `activity:${userId}`;
     await this.client.lPush(key, JSON.stringify(activity));
     await this.client.lTrim(key, 0, maxItems - 1);
-    await this.client.expire(key, 604800); // 7 días
+    await this.client.expire(key, 604800);
   }
 
   async getRecentActivity(userId: string, count: number = 20): Promise<any[]> {

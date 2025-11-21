@@ -328,8 +328,6 @@ export class MongoDBService {
       inProgressCourses: learningPaths.filter(lp => lp.status === 'In Progress').length
     };
   }
-
-  // ============= INTERVIEW METHODS =============
   
   async addInterviewToApplication(applicationId: string, interviewData: {
     type: 'HR' | 'Technical' | 'Cultural' | 'Final';

@@ -551,8 +551,6 @@ export class TalentumController {
     });
   };
 
-  // ============= INTERVIEW CONTROLLERS =============
-
   addInterview = async (req: Request, res: Response) => {
     try {
       const { applicationId } = req.params;
@@ -605,8 +603,6 @@ export class TalentumController {
     }
   };
 
-  // ============= COURSE SCORE CONTROLLERS =============
-
   updateCourseScore = async (req: Request, res: Response) => {
     try {
       const { userId, courseId } = req.params;
@@ -638,8 +634,6 @@ export class TalentumController {
       res.status(500).json({ success: false, error: error.message });
     }
   };
-
-  // ============= CERTIFICATION CONTROLLERS =============
 
   createCertification = async (req: Request, res: Response) => {
     try {
