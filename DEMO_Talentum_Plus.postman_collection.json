@@ -1,0 +1,331 @@
+{
+	"info": {
+		"name": "DEMO - Talentum Plus Live",
+		"description": "Colección para demostración en vivo - Sigue el orden numérico",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "00 - Health Check",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/health",
+					"host": ["{{baseUrl}}"],
+					"path": ["health"]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "01 - Crear Usuario Ana García",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const response = pm.response.json();",
+							"if (response.data && response.data._id) {",
+							"    pm.environment.set('anaUserId', response.data._id);",
+							"    console.log('Ana User ID saved: ' + response.data._id);",
+							"}"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"name\": \"Ana García\",\n  \"email\": \"ana.garcia@email.com\",\n  \"location\": \"Buenos Aires\",\n  \"currentRole\": \"Full Stack Developer\",\n  \"bio\": \"Desarrolladora apasionada por tecnologías web modernas\",\n  \"isEmployee\": false,\n  \"skills\": [\n    {\"name\": \"React\", \"level\": \"Advanced\", \"yearsOfExperience\": 3},\n    {\"name\": \"Node.js\", \"level\": \"Advanced\", \"yearsOfExperience\": 3},\n    {\"name\": \"TypeScript\", \"level\": \"Intermediate\", \"yearsOfExperience\": 2},\n    {\"name\": \"MongoDB\", \"level\": \"Intermediate\", \"yearsOfExperience\": 2}\n  ],\n  \"experience\": [\n    {\n      \"company\": \"TechCorp\",\n      \"role\": \"Frontend Developer\",\n      \"startDate\": \"2021-03-01T00:00:00.000Z\",\n      \"endDate\": \"2024-01-01T00:00:00.000Z\",\n      \"description\": \"Desarrollo de aplicaciones web con React\"\n    }\n  ],\n  \"education\": [\n    {\n      \"institution\": \"UADE\",\n      \"degree\": \"Ingeniería en Informática\",\n      \"field\": \"Computer Science\",\n      \"graduationYear\": 2021\n    }\n  ]\n}"
+				},
+				"url": {
+					"raw": "{{baseUrl}}/users",
+					"host": ["{{baseUrl}}"],
+					"path": ["users"]
+				},
+				"description": "Crea el perfil de Ana con skills, experiencia y educación"
+			},
+			"response": []
+		},
+		{
+			"name": "02 - Ver Trabajos Disponibles",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/jobs",
+					"host": ["{{baseUrl}}"],
+					"path": ["jobs"]
+				},
+				"description": "Muestra todas las ofertas de trabajo activas (usa cache de Redis)"
+			},
+			"response": []
+		},
+		{
+			"name": "03 - Recomendaciones de Trabajos para Ana",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/recommendations/user/{{anaUserId}}/jobs",
+					"host": ["{{baseUrl}}"],
+					"path": ["recommendations", "user", "{{anaUserId}}", "jobs"]
+				},
+				"description": "Neo4j hace matching de skills para recomendar trabajos con score"
+			},
+			"response": []
+		},
+		{
+			"name": "04 - Aplicar a un Trabajo",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const response = pm.response.json();",
+							"if (response.data && response.data._id) {",
+							"    pm.environment.set('applicationId', response.data._id);",
+							"    console.log('Application ID saved: ' + response.data._id);",
+							"}"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"userId\": \"{{anaUserId}}\",\n  \"jobPostingId\": \"{{jobId}}\",\n  \"coverLetter\": \"Me interesa mucho esta posición porque coincide perfectamente con mi experiencia en React y Node.js. Tengo 3 años de experiencia desarrollando aplicaciones full-stack y estoy emocionada por contribuir al equipo.\"\n}"
+				},
+				"url": {
+					"raw": "{{baseUrl}}/applications",
+					"host": ["{{baseUrl}}"],
+					"path": ["applications"]
+				},
+				"description": "IMPORTANTE: Primero copia un jobId de la respuesta anterior y agrégalo al environment como 'jobId'"
+			},
+			"response": []
+		},
+		{
+			"name": "05 - Agregar Entrevista",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"type\": \"Technical\",\n  \"date\": \"2024-12-01T10:00:00.000Z\",\n  \"feedback\": \"Candidata con sólidos conocimientos en React y Node.js\",\n  \"confidentialNotes\": \"Carlos Méndez - Tech Lead: Muy buena entrevista técnica. Demuestra buen dominio de arquitectura de sistemas.\",\n  \"score\": 8.5\n}"
+				},
+				"url": {
+					"raw": "{{baseUrl}}/applications/{{applicationId}}/interviews",
+					"host": ["{{baseUrl}}"],
+					"path": ["applications", "{{applicationId}}", "interviews"]
+				},
+				"description": "Agrega una entrevista al array embebido en MongoDB"
+			},
+			"response": []
+		},
+		{
+			"name": "06 - Recomendaciones de Cursos para Ana",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/recommendations/user/{{anaUserId}}/courses",
+					"host": ["{{baseUrl}}"],
+					"path": ["recommendations", "user", "{{anaUserId}}", "courses"]
+				},
+				"description": "Neo4j analiza qué skills le faltan y recomienda cursos"
+			},
+			"response": []
+		},
+		{
+			"name": "07 - Inscribir Ana en un Curso",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const response = pm.response.json();",
+							"if (response.data && response.data._id) {",
+							"    pm.environment.set('enrollmentId', response.data._id);",
+							"    console.log('Enrollment ID saved: ' + response.data._id);",
+							"}"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"userId\": \"{{anaUserId}}\",\n  \"courseId\": \"{{courseId}}\"\n}"
+				},
+				"url": {
+					"raw": "{{baseUrl}}/courses/enroll",
+					"host": ["{{baseUrl}}"],
+					"path": ["courses", "enroll"]
+				},
+				"description": "IMPORTANTE: Primero copia un courseId de la respuesta anterior y agrégalo al environment como 'courseId'"
+			},
+			"response": []
+		},
+		{
+			"name": "08 - Ver Estadísticas de Ana",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/users/{{anaUserId}}/stats",
+					"host": ["{{baseUrl}}"],
+					"path": ["users", "{{anaUserId}}", "stats"]
+				},
+				"description": "Combina datos de MongoDB, Neo4j y Redis para mostrar stats completas"
+			},
+			"response": []
+		},
+		{
+			"name": "09 - Crear Nueva Empresa",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const response = pm.response.json();",
+							"if (response.data && response.data._id) {",
+							"    pm.environment.set('companyId', response.data._id);",
+							"    console.log('Company ID saved: ' + response.data._id);",
+							"}"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"name\": \"InnovaTech Solutions\",\n  \"industry\": \"Software Development\",\n  \"size\": \"50-200\",\n  \"location\": \"Buenos Aires, Argentina\",\n  \"website\": \"https://innovatech.com\",\n  \"description\": \"Empresa líder en desarrollo de soluciones cloud. Ofrecemos home office, capacitaciones continuas y un excelente ambiente laboral.\",\n  \"foundedYear\": 2018\n}"
+				},
+				"url": {
+					"raw": "{{baseUrl}}/companies",
+					"host": ["{{baseUrl}}"],
+					"path": ["companies"]
+				},
+				"description": "Crea empresa en MongoDB y nodo en Neo4j"
+			},
+			"response": []
+		},
+		{
+			"name": "10 - Matching de Candidatos para el Job",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/matching/job/{{jobId}}/candidates",
+					"host": ["{{baseUrl}}"],
+					"path": ["matching", "job", "{{jobId}}", "candidates"]
+				},
+				"description": "Neo4j calcula matching score entre candidatos y job requirements"
+			},
+			"response": []
+		},
+		{
+			"name": "11 - Ver Actividad Reciente de Ana",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/analytics/user/{{anaUserId}}/activity",
+					"host": ["{{baseUrl}}"],
+					"path": ["analytics", "user", "{{anaUserId}}", "activity"]
+				},
+				"description": "Timeline de toda la actividad: aplicaciones, cursos, conexiones"
+			},
+			"response": []
+		},
+		{
+			"name": "EXTRA - Ver Perfil Completo de Ana",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/users/{{anaUserId}}",
+					"host": ["{{baseUrl}}"],
+					"path": ["users", "{{anaUserId}}"]
+				},
+				"description": "Ver el documento completo del usuario en MongoDB"
+			},
+			"response": []
+		},
+		{
+			"name": "EXTRA - Ver Todos los Cursos",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/courses",
+					"host": ["{{baseUrl}}"],
+					"path": ["courses"]
+				},
+				"description": "Lista todos los cursos disponibles"
+			},
+			"response": []
+		},
+		{
+			"name": "EXTRA - Ver Todas las Empresas",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/companies",
+					"host": ["{{baseUrl}}"],
+					"path": ["companies"]
+				},
+				"description": "Lista todas las empresas registradas"
+			},
+			"response": []
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:3000/api",
+			"type": "string"
+		}
+	]
+}
+
