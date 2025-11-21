@@ -131,6 +131,7 @@ El proyecto implementa una arquitectura **polyglot persistence**, utilizando dif
 ### DevOps
 - **Containerización**: Docker & Docker Compose
 - **Orquestación**: Docker Compose para desarrollo local
+- **Observabilidad**: Prometheus + Grafana para monitorear todo el stack
 
 ---
 
@@ -189,6 +190,11 @@ NEO4J_PASSWORD=db2passwordsecure!
 
 # Redis Configuration
 REDIS_URI=redis://localhost:6379
+
+# Grafana
+GRAFANA_ADMIN_USER=admin
+GRAFANA_ADMIN_PASSWORD=admin
+
 EOF
 ```
 
@@ -196,7 +202,17 @@ EOF
 - Las contraseñas deben coincidir con las del `docker-compose.yml`
 - No commitear el archivo `.env` a Git (ya está en `.gitignore`)
 
-### 3. Levantar Bases de Datos con Docker
+### 3. Buildear neo4j_exporter
+Debido a que estamos utilizando la versión *Community* de Neo4j, necesitamos de un exporter para poder acceder a métricas, ya que esta versión no expone métricas para monitoreo.
+
+Para esto hemos implementado un exporter custom basado en el de [petrov-e en GitHub](https://github.com/petrov-e/neo4j_exporter#), en el directorio `neo4j_exporter` dentro de este proyecto.
+
+Para buildearlo, antes de levantar los contenedores, ejecutar en el root del proyecto:
+```
+docker build neo4j_exporter -t srh/neo4j_exporter
+```
+
+### 4. Levantar Bases de Datos con Docker
 
 ```bash
 # Levantar contenedores en background
@@ -213,6 +229,11 @@ docker-compose ps
 - `neo4j_db` - Neo4j Database (Puertos 7474, 7687)
 - `mongo_db` - MongoDB Database (Puerto 27017)
 - `redis_db` - Redis Cache (Puerto 6379)
+- `mongodb_exporter` - Exporter de métricas de MongoDB (Puerto 9216)
+- `redis_exporter` - Exporter de métricas de Redis (Puerto 9121)
+- `neo4j_exporter` - Exporter de métricas de Neo4j (Puerto 9099)
+- `prometheus` - Servicio de Prometheus para recolectar métricas (Puerto 9090)
+- `grafana` - Servicio de Grafana para visualizar scrapeadas por Prometheus (Puerto 4000)
 
 #### Acceso a las Bases de Datos
 
@@ -221,13 +242,22 @@ docker-compose ps
 - Usuario: `neo4j`
 - Contraseña: `db2passwordsecure!`
 
+*Métricas (Neo4j Exporter):*
+- URL: http://localhost:9099
+
 **MongoDB (usando MongoDB Compass):**
 - URI: `mongodb://admin:db2passwordsecure!@localhost:27017/talentum_db?authSource=admin`
+
+*Métricas (MongoDB Exporter):*
+- URL: http://localhost:9216
 
 **Redis (usando redis-cli):**
 ```bash
 docker exec -it redis_db redis-cli
 ```
+
+*Métricas (Redis Exporter):*
+- URL: http://localhost:9121
 
 ### 4. Instalar Dependencias
 
@@ -606,3 +636,27 @@ Crear `.vscode/launch.json`:
   ]
 }
 ```
+
+---
+
+## 🔍 Observability
+
+### Configuración de Prometheus
+Prometheus es un servicio que consume métricas de status de todo el stack tecnológico de un sistema y las expone para ser consumidas por plataformas de observabilidad como Grafana.
+
+Para esto, es necesario que cada servicio exponga un endpoint `/metrics` en el cual responderá con los valores de las métricas que publique dicho servicio.
+
+En nuestro caso, para los 3 motores de bases de datos utilizamos *exporters*, que son servicios custom que ejecutan queries a su respectiva DB para extraer datos de estado, tiempos de respuesta de transacciones y demás. Estos exporters son los encargados de exponer el endpoint `/metrics` que consume Prometheus.
+
+Esto funciona gracias al archivo `prometheus.yml`, el cual Prometheus usa para obtener las direcciones a scrapear (cada X tiempo configurado en el mismo archivo), y así luego permitir que Grafana (o equivalente) extraiga todos los datos directamente desde Prometheus.
+
+### Acceso a Grafana
+- URL: http://localhost:4000/
+
+Autenticarse con las credenciales seteadas como variables de entorno `GF_SECURITY_ADMIN_USER` y `GF_SECURITY_ADMIN_PASSWORD` en la definición del container de Docker Compose (por default admin / admin, salvo que el `.env` tenga otra cosa).
+
+Al primer login, Grafana pedirá que cambiemos la contraseña.
+
+Una vez dentro, Grafana nos recibirá con una página de bienvenida con tarjetas de configuraciones básicas a hacer. En la que dice "Add your first data source", podremos elegir Prometheus, ingresando la url `http://localhost:9090` y dejando el resto de campos como están.
+
+Una vez hecho esto sólo resta agregar los dashboards (ya sea creándolos desde 0 importando los aquí incluidos en `./grafana_dashboards`) o consultar las métricas a través del menú `Explore`

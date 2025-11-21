@@ -4,10 +4,10 @@ services:
     container_name: neo4j_db
     environment:
       NEO4J_AUTH: ${NEO4J_USER}/${NEO4J_PASSWORD}
-      NEO4J_PLUGINS: '["apoc"]'    
+      NEO4J_PLUGINS: '["apoc"]'
     ports:
       - "7474:7474"  
-      - "7687:7687"  
+      - "7687:7687"
     volumes:
       - neo4j_data:/data
       - neo4j_logs:/logs
@@ -36,11 +36,78 @@ services:
     command: redis-server --appendonly yes
     restart: unless-stopped
 
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    ports:
+      - "9090:9090"
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    ports:
+      - "4000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=${GRAFANA_ADMIN_USER}
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD}
+    volumes:
+      - grafana_data:/var/lib/grafana
+    restart: unless-stopped
+
+  mongodb-exporter:
+    image: percona/mongodb_exporter:0.40
+    container_name: mongodb_exporter
+    environment:
+      - MONGODB_URI=mongodb://${MONGO_ROOT_USER}:${MONGO_ROOT_PASSWORD}@mongo_db:27017
+    command:
+      - '--mongodb.uri=mongodb://${MONGO_ROOT_USER}:${MONGO_ROOT_PASSWORD}@mongo_db:27017'
+      - '--collect-all'
+      - '--compatible-mode'
+    ports:
+      - "9216:9216"
+    depends_on:
+      - mongo_db
+    restart: unless-stopped
+  
+  redis-exporter:
+    image: oliver006/redis_exporter:latest
+    container_name: redis_exporter
+    environment:
+      - REDIS_ADDR=redis://redis_db:6379
+    ports:
+      - "9121:9121"
+    depends_on:
+      - redis_db
+    restart: unless-stopped
+  
+  neo4j-exporter:
+    image: srh/neo4j_exporter
+    container_name: neo4j_exporter
+    environment:
+      - NEO4J_ADDRESS=neo4j_db:7687
+      - NEO4J_USER=${NEO4J_USER}
+      - NEO4J_PASSWORD=${NEO4J_PASSWORD}
+      - FLASK_RUN_PORT=9099
+    ports:
+      - "9099:9099"
+    depends_on:
+      - neo4j_db
+    restart: unless-stopped
+
+
 volumes:
   neo4j_data:
   neo4j_logs:
   mongo_data:
   redis_data:
+  prometheus_data:
+  grafana_data:
 
 #networks:
 #  redis-network:
