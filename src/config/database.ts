@@ -85,7 +85,6 @@ export const connectNeo4j = () => {
   return new Neo4jTrackedDriver(driver);
 };
 
-
 // Redis Connection
 export const connectRedis = async () => {
   const redisURI = process.env.REDIS_URI || 'redis://localhost:6379';
@@ -94,9 +93,31 @@ export const connectRedis = async () => {
     url: redisURI
   });
 
-  client.on('error', (err) => console.error('Redis Client Error:', err));
-  client.on('connect', () => console.log('Redis connected successfully'));
+  client.on('error', (err) => {
+    console.error('Redis Client Error:', err);
+    dbConnectionsGauge.labels('redis').set(0);
+  });
+  
+  client.on('connect', () => {
+    console.log('Redis connected successfully');
+    dbConnectionsGauge.labels('redis').set(1);
+  });
+  
+  client.on('ready', () => {
+    dbConnectionsGauge.labels('redis').set(1);
+  });
+  
+  client.on('end', () => {
+    dbConnectionsGauge.labels('redis').set(0);
+  });
 
   await client.connect();
+  
+  // Actualizar gauge periódicamente verificando el estado
+  setInterval(() => {
+    const isConnected = client.isOpen ? 1 : 0;
+    dbConnectionsGauge.labels('redis').set(isConnected);
+  }, 5000);
+  
   return client;
 };

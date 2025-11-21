@@ -39,6 +39,7 @@ app.use((req, res, next) => {
 });
 
 app.get('/metrics', async (req, res) => {
+  console.log('Prometheus metrics probe');
   res.set('Content-Type', metrics.register.contentType);
   res.end(await metrics.register.metrics());
 });
