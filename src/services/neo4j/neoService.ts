@@ -157,6 +157,22 @@ export class Neo4jService {
     }
   }
 
+  async createRequiresSkillRelationship(jobId: string, skillName: string) {
+    const session = this.getSession();
+    try {
+      const result = await session.run(
+        `MATCH (j:JobPosting {id: $jobId})
+         MERGE (s:Skill {name: $skillName})
+         MERGE (j)-[r:REQUIRES_SKILL]->(s)
+         RETURN r`,
+        { jobId, skillName }
+      );
+      return result.records[0].get('r').properties;
+    } finally {
+      await session.close();
+    }
+  }
+
   async createCourseRelationship(userId: string, courseId: string, status: 'ENROLLED_IN' | 'COMPLETED', progress?: number) {
     const session = this.getSession();
     try {
@@ -304,14 +320,13 @@ export class Neo4jService {
     const session = this.getSession();
     try {
       const result = await session.run(
-        `MATCH (u:User {id: $userId})-[:HAS_SKILL]->(s:Skill)
-         WITH u, COLLECT(s.name) as userSkills
+        `MATCH (u:User {id: $userId})-[:HAS_SKILL]->(userSkill:Skill)
+         WITH u, COLLECT(userSkill) as userSkills
          MATCH (j:JobPosting)<-[:POSTED]-(c:Company)
-         WHERE j.id IS NOT NULL
-         WITH u, j, c, userSkills,
-              [skill IN userSkills WHERE skill IN j.requiredSkills] as matchingSkills
-         WHERE SIZE(matchingSkills) > 0
+         MATCH (j)-[:REQUIRES_SKILL]->(reqSkill:Skill)
+         WHERE reqSkill IN userSkills
          AND NOT (u)-[:APPLIED_FOR]->(j)
+         WITH u, j, c, userSkills, COLLECT(DISTINCT reqSkill.name) as matchingSkills
          RETURN j.id as jobId, j.title as title, c.name as companyName,
                 j.location as location,
                 SIZE(matchingSkills) as matchCount,

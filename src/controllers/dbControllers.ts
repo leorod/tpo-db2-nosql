@@ -161,6 +161,16 @@ export class TalentumController {
         (job as any)._id.toString()
       );
       
+      // Crear relaciones REQUIRES_SKILL para cada skill requerido
+      if (job.requiredSkills && job.requiredSkills.length > 0) {
+        for (const skill of job.requiredSkills) {
+          await this.neo4jService.createRequiresSkillRelationship(
+            (job as any)._id.toString(),
+            skill
+          );
+        }
+      }
+      
       await this.redisService.invalidateJobCache();
       
       res.status(201).json({ success: true, data: job });
