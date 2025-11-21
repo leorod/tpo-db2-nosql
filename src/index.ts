@@ -12,11 +12,9 @@ dotenv.config();
 const app = express();
 const port = process.env.PORT || 3000;
 
-// Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// CORS middleware (opcional pero útil)
 app.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', '*');
   res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
@@ -24,29 +22,24 @@ app.use((req, res, next) => {
   next();
 });
 
-// Initialize connections and services
 const initializeApp = async () => {
   try {
     console.log('🚀 Starting Talentum+ Platform...\n');
 
-    // Connect to databases
     console.log('📊 Connecting to databases...');
     await connectMongoDB();
     const neo4jDriver = connectNeo4j();
     const redisClient = await connectRedis();
     console.log('✅ All databases connected!\n');
 
-    // Initialize services
     console.log('🔧 Initializing services...');
     const mongoService = new MongoDBService();
     const neo4jService = new Neo4jService(neo4jDriver);
     const redisService = new RedisService(redisClient);
     console.log('✅ Services initialized!\n');
 
-    // Initialize controller
     const controller = new TalentumController(mongoService, neo4jService, redisService);
 
-    // Setup routes
     const routes = createRoutes(controller);
     app.use('/api', routes);
 

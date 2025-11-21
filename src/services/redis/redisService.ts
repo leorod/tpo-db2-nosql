@@ -10,7 +10,6 @@ export class RedisService {
     this.client = client;
   }
 
-
   async set(key: string, value: any, ttl: number = this.DEFAULT_TTL): Promise<void> {
     const stringValue = JSON.stringify(value);
     await this.client.setEx(key, ttl, stringValue);
@@ -42,7 +41,6 @@ export class RedisService {
       await this.client.del(keys);
     }
   }
-
 
   async cacheUser(userId: string, userData: any, ttl: number = 1800): Promise<void> {
     await this.set(`user:${userId}`, userData, ttl);

@@ -8,16 +8,12 @@ const seedDatabase = async () => {
   console.log('🌱 Iniciando seed de la base de datos...\n');
 
   try {
-    // Conectar a las bases de datos
     await connectMongoDB();
     const neo4jDriver = connectNeo4j();
     const redisClient = await connectRedis();
 
     const mongoService = new MongoDBService();
     const neo4jService = new Neo4jService(neo4jDriver);
-
-    // Limpiar datos anteriores (opcional - comentar si no quieres limpiar)
-    // await redisClient.flushAll();
     
     console.log('📊 Creando empresas...');
     
